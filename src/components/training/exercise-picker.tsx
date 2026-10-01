@@ -5,9 +5,10 @@ import { Search } from 'lucide-react';
 import { MUSCLE_LABELS, MUSCLES } from '@/lib/labels';
 import { inputCls } from '@/components/ui/styles';
 import { Badge } from '@/components/ui/feedback';
+import { ExercisePhoto } from './exercise-media';
 import { cn } from '@/components/ui/cn';
 
-export interface PickerExercise { id: string; name: string; primaryMuscle: string; equipment: string | null; source: string }
+export interface PickerExercise { id: string; name: string; primaryMuscle: string; equipment: string | null; source: string; images?: string[] }
 
 const norm = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
@@ -38,7 +39,8 @@ export function ExercisePicker({ exercises, onPick, busy }: { exercises: PickerE
         {list.map((e) => (
           <li key={e.id}>
             <button disabled={busy} onClick={() => onPick(e)} className="flex w-full items-center justify-between gap-3 px-4 py-3.5 text-left transition hover:bg-surface2 active:bg-surface2 disabled:opacity-50">
-              <span className="min-w-0">
+              <ExercisePhoto images={e.images} alt="" className="h-11 w-11 shrink-0" rounded="rounded-lg" />
+              <span className="min-w-0 flex-1">
                 <span className="block truncate font-semibold">{e.name}</span>
                 <span className="block truncate text-xs text-muted">{MUSCLE_LABELS[e.primaryMuscle]}{e.equipment ? ` · ${e.equipment}` : ''}</span>
               </span>

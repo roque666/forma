@@ -7,23 +7,35 @@ const NOT_FOUND = Object.assign(new Error('Registo não encontrado.'), { code: '
 
 // ------------------------------------------------------------------ exercícios
 export interface ExerciseInput {
-  name: string; primaryMuscle: string; secondaryMuscles: string[]; equipment?: string; instructions?: string; trackingType: string;
+  name: string; primaryMuscle: string; secondaryMuscles: string[]; equipment?: string; instructions?: string; trackingType: string; mediaUrl?: string;
 }
 
 export async function createExercise(db: Db, actor: Actor, i: ExerciseInput): Promise<string> {
   const r = await db.one<{ id: string }>(
-    `insert into public.exercises (name, primary_muscle, secondary_muscles, equipment, instructions, tracking_type, source, owner_id)
-     values ($1, $2::public.muscle_group, $3::public.muscle_group[], $4, $5, $6::public.exercise_tracking, $7, $8) returning id`,
-    [i.name, i.primaryMuscle, i.secondaryMuscles, i.equipment ?? null, i.instructions ?? null, i.trackingType, (actor.realRole ?? actor.role) === 'coach' ? 'coach' : 'user', actor.id]);
+    `insert into public.exercises (name, primary_muscle, secondary_muscles, equipment, instructions, tracking_type, source, owner_id, media_url)
+     values ($1, $2::public.muscle_group, $3::public.muscle_group[], $4, $5, $6::public.exercise_tracking, $7, $8, $9) returning id`,
+    [i.name, i.primaryMuscle, i.secondaryMuscles, i.equipment ?? null, i.instructions ?? null, i.trackingType, (actor.realRole ?? actor.role) === 'coach' ? 'coach' : 'user', actor.id, i.mediaUrl ?? null]);
   return r!.id;
 }
 
 export async function updateExercise(db: Db, id: string, i: ExerciseInput): Promise<void> {
   const n = await db.exec(
     `update public.exercises set name = $2, primary_muscle = $3::public.muscle_group, secondary_muscles = $4::public.muscle_group[],
-            equipment = $5, instructions = $6, tracking_type = $7::public.exercise_tracking where id = $1`,
-    [id, i.name, i.primaryMuscle, i.secondaryMuscles, i.equipment ?? null, i.instructions ?? null, i.trackingType]);
+            equipment = $5, instructions = $6, tracking_type = $7::public.exercise_tracking, media_url = $8 where id = $1`,
+    [id, i.name, i.primaryMuscle, i.secondaryMuscles, i.equipment ?? null, i.instructions ?? null, i.trackingType, i.mediaUrl ?? null]);
   if (!n) throw NOT_FOUND;
+}
+
+/** Guarda (ou substitui) a imagem de um exercício. A RLS limita a quem pode editar o exercício. */
+export async function saveExerciseImage(db: Db, exerciseId: string, img: { mime: string; data: Buffer }): Promise<void> {
+  await db.exec(
+    `insert into public.exercise_images (exercise_id, mime, data) values ($1, $2, $3)
+     on conflict (exercise_id) do update set mime = excluded.mime, data = excluded.data, updated_at = now()`,
+    [exerciseId, img.mime, img.data]);
+}
+
+export async function removeExerciseImage(db: Db, exerciseId: string): Promise<void> {
+  await db.exec('delete from public.exercise_images where exercise_id = $1', [exerciseId]);
 }
 
 /** Exercícios com histórico são arquivados (nunca perdem o histórico); os outros são apagados. */

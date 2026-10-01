@@ -11,7 +11,7 @@ export interface PlanSet {
 }
 export interface PlanExercise {
   id: string; exerciseId: string; exerciseName: string; primaryMuscle: string; trackingType: string; position: number;
-  restSeconds: number; notes: string | null; sets: PlanSet[];
+  restSeconds: number; notes: string | null; images: string[]; mediaUrl: string | null; sets: PlanSet[];
 }
 export interface PlanDay { id: string; name: string; position: number; weekdays: number[]; exercises: PlanExercise[] }
 export interface PlanDetail extends PlanSummary { days: PlanDay[] }
@@ -40,7 +40,8 @@ export async function getPlan(db: Db, planId: string): Promise<PlanDetail | null
     'select id, name, position, weekdays from public.workout_days where plan_id = $1 order by position, name', [planId]);
   const exs = await db.query<PlanExercise & { dayId: string }>(
     `select pe.id, pe.day_id as "dayId", pe.exercise_id as "exerciseId", e.name as "exerciseName", e.primary_muscle as "primaryMuscle",
-            e.tracking_type as "trackingType", pe.position, pe.rest_seconds as "restSeconds", pe.notes
+            e.tracking_type as "trackingType", pe.position, pe.rest_seconds as "restSeconds", pe.notes,
+            coalesce(public.exercise_image_urls(e.id, e.image_urls), '{}') as images, e.media_url as "mediaUrl"
        from public.plan_exercises pe join public.exercises e on e.id = pe.exercise_id
       where pe.plan_id = $1 order by pe.position`, [planId]);
   const sets = await db.query<PlanSet & { planExerciseId: string }>(

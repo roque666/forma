@@ -11,6 +11,7 @@ const securityHeaders = [
 const config: NextConfig = {
   serverExternalPackages: ['pg'],
   poweredByHeader: false,
+  experimental: { serverActions: { bodySizeLimit: '2mb' } }, // fotos de exercícios (já reduzidas no telemóvel)
   async headers() {
     return [{ source: '/:path*', headers: securityHeaders }];
   },

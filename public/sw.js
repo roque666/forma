@@ -1,6 +1,6 @@
 // Service worker mínimo: só guarda ficheiros estáticos e a página offline.
 // Nunca guarda HTML de páginas nem respostas autenticadas (privacidade dos dados).
-const CACHE = 'forma-v1';
+const CACHE = 'forma-v2';
 const PRECACHE = ['/offline.html', '/icon-192.png', '/icon-512.png'];
 
 self.addEventListener('install', (e) => {
@@ -18,7 +18,7 @@ self.addEventListener('fetch', (e) => {
     e.respondWith(fetch(req).catch(() => caches.match('/offline.html')));
     return;
   }
-  if (url.pathname.startsWith('/_next/static/') || /\.(png|svg|ico|woff2?)$/.test(url.pathname)) {
+  if (url.pathname.startsWith('/_next/static/') || /\.(png|jpe?g|webp|svg|ico|woff2?)$/.test(url.pathname)) {
     e.respondWith(caches.match(req).then((hit) => hit || fetch(req).then((res) => {
       if (res.ok) { const copy = res.clone(); caches.open(CACHE).then((c) => c.put(req, copy)); }
       return res;

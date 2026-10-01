@@ -10,6 +10,7 @@ test('coach alterna para "O meu treino" e usa treino, refeição e peso', async 
   await login(page, 'coach@demo.pt', DEMO_PASSWORD);
   await expect(page.getByRole('link', { name: 'Atletas' }).first()).toBeVisible();
   await page.getByRole('button', { name: 'O meu treino' }).click();
+  await expect(page.getByRole('button', { name: 'Voltar a coach' })).toBeVisible(); // modo já ativo
   await expect(page.getByRole('link', { name: 'Atletas' })).toHaveCount(0);
   await expect(page.getByText('O meu treino').first()).toBeVisible();
 
@@ -54,6 +55,7 @@ test('os dados pessoais do coach não aparecem aos atletas nem no modo coach', a
 test('modo "O meu treino": todas as secções abrem e dá para treinar e definir objetivo', async ({ page }) => {
   await login(page, 'coach@demo.pt', DEMO_PASSWORD);
   await page.getByRole('button', { name: 'O meu treino' }).click();
+  await expect(page.getByRole('button', { name: 'Voltar a coach' })).toBeVisible(); // modo já ativo
   // treino completo: criar exercício, plano com dia, iniciar, registar série, terminar
   const ex = `Ex Coach ${stamp}`;
   await page.goto('/exercises/new');
@@ -99,6 +101,7 @@ test('modo "O meu treino": todas as secções abrem e dá para treinar e definir
 test('liberdades do coach no modo atleta: partilhar, editar base, objetivo sem avisos', async ({ page }) => {
   await login(page, 'coach@demo.pt', DEMO_PASSWORD);
   await page.getByRole('button', { name: 'O meu treino' }).click();
+  await expect(page.getByRole('button', { name: 'Voltar a coach' })).toBeVisible(); // modo já ativo
 
   // exercício criado pelo coach fica visível aos atletas ligados
   const ex = `Ex Partilhado ${stamp}`;
@@ -153,6 +156,7 @@ test('modelos do coach aparecem em "O meu treino" e podem ser usados como plano'
   await login(page, 'coach@demo.pt', DEMO_PASSWORD);
   // o modelo demo "Full body iniciante" é do coach
   await page.getByRole('button', { name: 'O meu treino' }).click();
+  await expect(page.getByRole('button', { name: 'Voltar a coach' })).toBeVisible(); // modo já ativo
   await page.goto('/workouts');
   await expect(page.getByText('Os meus modelos')).toBeVisible();
   await expect(page.getByText('Full body iniciante').first()).toBeVisible();

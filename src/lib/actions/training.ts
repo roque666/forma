@@ -9,18 +9,38 @@ import { withUser } from '../db/pool';
 import * as t from '../services/training';
 import { daySchema, exerciseSchema, planExerciseMetaSchema, planSchema, planSetsSchema, setLogSchema, type SetLogInput } from '../validation/training';
 import { uuid } from '../validation/common';
+import { sniffImageMime } from '../media';
 import type { PrEventRow } from '../data/sessions';
 
 type FormState = ActionResult<any> | null;
 const idOf = (v: unknown) => uuid.parse(v);
 
 // ------------------------------------------------------------------ exercícios
+const MAX_IMAGE_BYTES = 1_200_000;
+
+/** Lê e valida a imagem enviada no formulário (tamanho e tipo real pelos primeiros bytes). */
+async function readImageField(fd: FormData): Promise<{ img?: { mime: string; data: Buffer }; remove: boolean; error?: string }> {
+  const remove = fd.get('removeImage') === 'on';
+  const f = fd.get('image');
+  if (!(f instanceof File) || f.size === 0) return { remove };
+  if (f.size > MAX_IMAGE_BYTES) return { remove, error: 'A imagem é demasiado grande (máx. ~1 MB). Tenta uma foto mais pequena.' };
+  const data = Buffer.from(await f.arrayBuffer());
+  const mime = sniffImageMime(data);
+  if (!mime) return { remove, error: 'Formato de imagem não suportado. Usa JPG, PNG ou WebP.' };
+  return { img: { mime, data }, remove: false };
+}
+
 export async function createExerciseAction(_p: FormState, fd: FormData): Promise<FormState> {
   return run(async () => {
     const user = await requireUser();
     const p = parse(exerciseSchema, formToObject(fd));
     if ('error' in p) return p.error;
-    await withUser(user.id, (db) => t.createExercise(db, user, p.data));
+    const im = await readImageField(fd);
+    if (im.error) return fail(im.error, { image: im.error });
+    await withUser(user.id, async (db) => {
+      const id = await t.createExercise(db, user, p.data);
+      if (im.img) await t.saveExerciseImage(db, id, im.img);
+    });
     revalidatePath('/exercises');
     redirect('/exercises?created=1');
   });
@@ -31,8 +51,15 @@ export async function updateExerciseAction(id: string, _p: FormState, fd: FormDa
     const user = await requireUser();
     const p = parse(exerciseSchema, formToObject(fd));
     if ('error' in p) return p.error;
-    await withUser(user.id, (db) => t.updateExercise(db, idOf(id), p.data));
+    const im = await readImageField(fd);
+    if (im.error) return fail(im.error, { image: im.error });
+    await withUser(user.id, async (db) => {
+      await t.updateExercise(db, idOf(id), p.data);
+      if (im.img) await t.saveExerciseImage(db, idOf(id), im.img);
+      else if (im.remove) await t.removeExerciseImage(db, idOf(id));
+    });
     revalidatePath('/exercises');
+    revalidatePath(`/exercises/${id}`);
     return ok(undefined, 'Exercício atualizado.');
   });
 }

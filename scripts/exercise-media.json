@@ -1,0 +1,443 @@
+{
+ "Supino reto com barra": {
+  "source": "Barbell Bench Press - Medium Grip",
+  "images": [
+   "/exercises/Barbell_Bench_Press_-_Medium_Grip/0.jpg",
+   "/exercises/Barbell_Bench_Press_-_Medium_Grip/1.jpg"
+  ]
+ },
+ "Supino inclinado com halteres": {
+  "source": "Incline Dumbbell Press",
+  "images": [
+   "/exercises/Incline_Dumbbell_Press/0.jpg",
+   "/exercises/Incline_Dumbbell_Press/1.jpg"
+  ]
+ },
+ "Supino declinado com barra": {
+  "source": "Decline Barbell Bench Press",
+  "images": [
+   "/exercises/Decline_Barbell_Bench_Press/0.jpg",
+   "/exercises/Decline_Barbell_Bench_Press/1.jpg"
+  ]
+ },
+ "Crucifixo com halteres": {
+  "source": "Dumbbell Flyes",
+  "images": [
+   "/exercises/Dumbbell_Flyes/0.jpg",
+   "/exercises/Dumbbell_Flyes/1.jpg"
+  ]
+ },
+ "Peck deck (máquina)": {
+  "source": "Butterfly",
+  "images": [
+   "/exercises/Butterfly/0.jpg",
+   "/exercises/Butterfly/1.jpg"
+  ]
+ },
+ "Cruzamento de cabos": {
+  "source": "Cable Crossover",
+  "images": [
+   "/exercises/Cable_Crossover/0.jpg",
+   "/exercises/Cable_Crossover/1.jpg"
+  ]
+ },
+ "Flexões": {
+  "source": "Pushups",
+  "images": [
+   "/exercises/Pushups/0.jpg",
+   "/exercises/Pushups/1.jpg"
+  ]
+ },
+ "Fundos nas paralelas": {
+  "source": "Dips - Chest Version",
+  "images": [
+   "/exercises/Dips_-_Chest_Version/0.jpg",
+   "/exercises/Dips_-_Chest_Version/1.jpg"
+  ]
+ },
+ "Barra fixa (pronada)": {
+  "source": "Pullups",
+  "images": [
+   "/exercises/Pullups/0.jpg",
+   "/exercises/Pullups/1.jpg"
+  ]
+ },
+ "Puxada na polia alta": {
+  "source": "Wide-Grip Lat Pulldown",
+  "images": [
+   "/exercises/Wide-Grip_Lat_Pulldown/0.jpg",
+   "/exercises/Wide-Grip_Lat_Pulldown/1.jpg"
+  ]
+ },
+ "Remada curvada com barra": {
+  "source": "Bent Over Barbell Row",
+  "images": [
+   "/exercises/Bent_Over_Barbell_Row/0.jpg",
+   "/exercises/Bent_Over_Barbell_Row/1.jpg"
+  ]
+ },
+ "Remada com haltere a uma mão": {
+  "source": "One-Arm Dumbbell Row",
+  "images": [
+   "/exercises/One-Arm_Dumbbell_Row/0.jpg",
+   "/exercises/One-Arm_Dumbbell_Row/1.jpg"
+  ]
+ },
+ "Remada sentado no cabo": {
+  "source": "Seated Cable Rows",
+  "images": [
+   "/exercises/Seated_Cable_Rows/0.jpg",
+   "/exercises/Seated_Cable_Rows/1.jpg"
+  ]
+ },
+ "Remada em T": {
+  "source": "T-Bar Row with Handle",
+  "images": [
+   "/exercises/T-Bar_Row_with_Handle/0.jpg",
+   "/exercises/T-Bar_Row_with_Handle/1.jpg"
+  ]
+ },
+ "Pullover com haltere": {
+  "source": "Bent-Arm Dumbbell Pullover",
+  "images": [
+   "/exercises/Bent-Arm_Dumbbell_Pullover/0.jpg",
+   "/exercises/Bent-Arm_Dumbbell_Pullover/1.jpg"
+  ]
+ },
+ "Levantamento terra": {
+  "source": "Barbell Deadlift",
+  "images": [
+   "/exercises/Barbell_Deadlift/0.jpg",
+   "/exercises/Barbell_Deadlift/1.jpg"
+  ]
+ },
+ "Encolhimento de ombros com halteres": {
+  "source": "Dumbbell Shrug",
+  "images": [
+   "/exercises/Dumbbell_Shrug/0.jpg",
+   "/exercises/Dumbbell_Shrug/1.jpg"
+  ]
+ },
+ "Hiperextensões": {
+  "source": "Hyperextensions (Back Extensions)",
+  "images": [
+   "/exercises/Hyperextensions_Back_Extensions/0.jpg",
+   "/exercises/Hyperextensions_Back_Extensions/1.jpg"
+  ]
+ },
+ "Press militar com barra": {
+  "source": "Standing Military Press",
+  "images": [
+   "/exercises/Standing_Military_Press/0.jpg",
+   "/exercises/Standing_Military_Press/1.jpg"
+  ]
+ },
+ "Press de ombros com halteres": {
+  "source": "Dumbbell Shoulder Press",
+  "images": [
+   "/exercises/Dumbbell_Shoulder_Press/0.jpg",
+   "/exercises/Dumbbell_Shoulder_Press/1.jpg"
+  ]
+ },
+ "Elevações laterais": {
+  "source": "Side Lateral Raise",
+  "images": [
+   "/exercises/Side_Lateral_Raise/0.jpg",
+   "/exercises/Side_Lateral_Raise/1.jpg"
+  ]
+ },
+ "Elevações frontais": {
+  "source": "Front Dumbbell Raise",
+  "images": [
+   "/exercises/Front_Dumbbell_Raise/0.jpg",
+   "/exercises/Front_Dumbbell_Raise/1.jpg"
+  ]
+ },
+ "Pássaro (elevações posteriores)": {
+  "source": "Reverse Flyes",
+  "images": [
+   "/exercises/Reverse_Flyes/0.jpg",
+   "/exercises/Reverse_Flyes/1.jpg"
+  ]
+ },
+ "Face pull": {
+  "source": "Face Pull",
+  "images": [
+   "/exercises/Face_Pull/0.jpg",
+   "/exercises/Face_Pull/1.jpg"
+  ]
+ },
+ "Remada alta com barra": {
+  "source": "Upright Barbell Row",
+  "images": [
+   "/exercises/Upright_Barbell_Row/0.jpg",
+   "/exercises/Upright_Barbell_Row/1.jpg"
+  ]
+ },
+ "Curl com barra": {
+  "source": "Barbell Curl",
+  "images": [
+   "/exercises/Barbell_Curl/0.jpg",
+   "/exercises/Barbell_Curl/1.jpg"
+  ]
+ },
+ "Curl com halteres alternado": {
+  "source": "Dumbbell Alternate Bicep Curl",
+  "images": [
+   "/exercises/Dumbbell_Alternate_Bicep_Curl/0.jpg",
+   "/exercises/Dumbbell_Alternate_Bicep_Curl/1.jpg"
+  ]
+ },
+ "Curl martelo": {
+  "source": "Hammer Curls",
+  "images": [
+   "/exercises/Hammer_Curls/0.jpg",
+   "/exercises/Hammer_Curls/1.jpg"
+  ]
+ },
+ "Curl no banco Scott": {
+  "source": "Preacher Curl",
+  "images": [
+   "/exercises/Preacher_Curl/0.jpg",
+   "/exercises/Preacher_Curl/1.jpg"
+  ]
+ },
+ "Curl no cabo": {
+  "source": "Standing Biceps Cable Curl",
+  "images": [
+   "/exercises/Standing_Biceps_Cable_Curl/0.jpg",
+   "/exercises/Standing_Biceps_Cable_Curl/1.jpg"
+  ]
+ },
+ "Extensão de tríceps na polia (corda)": {
+  "source": "Triceps Pushdown - Rope Attachment",
+  "images": [
+   "/exercises/Triceps_Pushdown_-_Rope_Attachment/0.jpg",
+   "/exercises/Triceps_Pushdown_-_Rope_Attachment/1.jpg"
+  ]
+ },
+ "Skull crusher": {
+  "source": "EZ-Bar Skullcrusher",
+  "images": [
+   "/exercises/EZ-Bar_Skullcrusher/0.jpg",
+   "/exercises/EZ-Bar_Skullcrusher/1.jpg"
+  ]
+ },
+ "Extensão de tríceps acima da cabeça": {
+  "source": "Cable Rope Overhead Triceps Extension",
+  "images": [
+   "/exercises/Cable_Rope_Overhead_Triceps_Extension/0.jpg",
+   "/exercises/Cable_Rope_Overhead_Triceps_Extension/1.jpg"
+  ]
+ },
+ "Supino fechado": {
+  "source": "Close-Grip Barbell Bench Press",
+  "images": [
+   "/exercises/Close-Grip_Barbell_Bench_Press/0.jpg",
+   "/exercises/Close-Grip_Barbell_Bench_Press/1.jpg"
+  ]
+ },
+ "Fundos no banco": {
+  "source": "Bench Dips",
+  "images": [
+   "/exercises/Bench_Dips/0.jpg",
+   "/exercises/Bench_Dips/1.jpg"
+  ]
+ },
+ "Agachamento livre com barra": {
+  "source": "Barbell Full Squat",
+  "images": [
+   "/exercises/Barbell_Full_Squat/0.jpg",
+   "/exercises/Barbell_Full_Squat/1.jpg"
+  ]
+ },
+ "Agachamento frontal": {
+  "source": "Front Barbell Squat",
+  "images": [
+   "/exercises/Front_Barbell_Squat/0.jpg",
+   "/exercises/Front_Barbell_Squat/1.jpg"
+  ]
+ },
+ "Leg press 45°": {
+  "source": "Leg Press",
+  "images": [
+   "/exercises/Leg_Press/0.jpg",
+   "/exercises/Leg_Press/1.jpg"
+  ]
+ },
+ "Extensão de pernas": {
+  "source": "Leg Extensions",
+  "images": [
+   "/exercises/Leg_Extensions/0.jpg",
+   "/exercises/Leg_Extensions/1.jpg"
+  ]
+ },
+ "Passada com halteres": {
+  "source": "Dumbbell Lunges",
+  "images": [
+   "/exercises/Dumbbell_Lunges/0.jpg",
+   "/exercises/Dumbbell_Lunges/1.jpg"
+  ]
+ },
+ "Agachamento búlgaro": {
+  "source": "Split Squats",
+  "images": [
+   "/exercises/Split_Squats/0.jpg",
+   "/exercises/Split_Squats/1.jpg"
+  ]
+ },
+ "Hack squat": {
+  "source": "Hack Squat",
+  "images": [
+   "/exercises/Hack_Squat/0.jpg",
+   "/exercises/Hack_Squat/1.jpg"
+  ]
+ },
+ "Stiff (levantamento terra romeno)": {
+  "source": "Romanian Deadlift",
+  "images": [
+   "/exercises/Romanian_Deadlift/0.jpg",
+   "/exercises/Romanian_Deadlift/1.jpg"
+  ]
+ },
+ "Curl de pernas deitado": {
+  "source": "Lying Leg Curls",
+  "images": [
+   "/exercises/Lying_Leg_Curls/0.jpg",
+   "/exercises/Lying_Leg_Curls/1.jpg"
+  ]
+ },
+ "Curl de pernas sentado": {
+  "source": "Seated Leg Curl",
+  "images": [
+   "/exercises/Seated_Leg_Curl/0.jpg",
+   "/exercises/Seated_Leg_Curl/1.jpg"
+  ]
+ },
+ "Hip thrust": {
+  "source": "Barbell Hip Thrust",
+  "images": [
+   "/exercises/Barbell_Hip_Thrust/0.jpg",
+   "/exercises/Barbell_Hip_Thrust/1.jpg"
+  ]
+ },
+ "Elevação de gémeos em pé": {
+  "source": "Standing Calf Raises",
+  "images": [
+   "/exercises/Standing_Calf_Raises/0.jpg",
+   "/exercises/Standing_Calf_Raises/1.jpg"
+  ]
+ },
+ "Elevação de gémeos sentado": {
+  "source": "Seated Calf Raise",
+  "images": [
+   "/exercises/Seated_Calf_Raise/0.jpg",
+   "/exercises/Seated_Calf_Raise/1.jpg"
+  ]
+ },
+ "Adução na máquina": {
+  "source": "Thigh Adductor",
+  "images": [
+   "/exercises/Thigh_Adductor/0.jpg",
+   "/exercises/Thigh_Adductor/1.jpg"
+  ]
+ },
+ "Abdução na máquina": {
+  "source": "Thigh Abductor",
+  "images": [
+   "/exercises/Thigh_Abductor/0.jpg",
+   "/exercises/Thigh_Abductor/1.jpg"
+  ]
+ },
+ "Abdominais no chão (crunch)": {
+  "source": "Crunches",
+  "images": [
+   "/exercises/Crunches/0.jpg",
+   "/exercises/Crunches/1.jpg"
+  ]
+ },
+ "Elevação de pernas suspenso": {
+  "source": "Hanging Leg Raise",
+  "images": [
+   "/exercises/Hanging_Leg_Raise/0.jpg",
+   "/exercises/Hanging_Leg_Raise/1.jpg"
+  ]
+ },
+ "Prancha": {
+  "source": "Plank",
+  "images": [
+   "/exercises/Plank/0.jpg",
+   "/exercises/Plank/1.jpg"
+  ]
+ },
+ "Roda abdominal": {
+  "source": "Ab Roller",
+  "images": [
+   "/exercises/Ab_Roller/0.jpg",
+   "/exercises/Ab_Roller/1.jpg"
+  ]
+ },
+ "Crunch no cabo": {
+  "source": "Cable Crunch",
+  "images": [
+   "/exercises/Cable_Crunch/0.jpg",
+   "/exercises/Cable_Crunch/1.jpg"
+  ]
+ },
+ "Rotação russa": {
+  "source": "Russian Twist",
+  "images": [
+   "/exercises/Russian_Twist/0.jpg",
+   "/exercises/Russian_Twist/1.jpg"
+  ]
+ },
+ "Curl de pulso": {
+  "source": "Palms-Up Barbell Wrist Curl Over A Bench",
+  "images": [
+   "/exercises/Palms-Up_Barbell_Wrist_Curl_Over_A_Bench/0.jpg",
+   "/exercises/Palms-Up_Barbell_Wrist_Curl_Over_A_Bench/1.jpg"
+  ]
+ },
+ "Passadeira": {
+  "source": "Running, Treadmill",
+  "images": [
+   "/exercises/Running_Treadmill/0.jpg",
+   "/exercises/Running_Treadmill/1.jpg"
+  ]
+ },
+ "Bicicleta estática": {
+  "source": "Bicycling, Stationary",
+  "images": [
+   "/exercises/Bicycling_Stationary/0.jpg",
+   "/exercises/Bicycling_Stationary/1.jpg"
+  ]
+ },
+ "Remo (ergómetro)": {
+  "source": "Rowing, Stationary",
+  "images": [
+   "/exercises/Rowing_Stationary/0.jpg",
+   "/exercises/Rowing_Stationary/1.jpg"
+  ]
+ },
+ "Corda de saltar": {
+  "source": "Rope Jumping",
+  "images": [
+   "/exercises/Rope_Jumping/0.jpg",
+   "/exercises/Rope_Jumping/1.jpg"
+  ]
+ },
+ "Kettlebell swing": {
+  "source": "One-Arm Kettlebell Swings",
+  "images": [
+   "/exercises/One-Arm_Kettlebell_Swings/0.jpg",
+   "/exercises/One-Arm_Kettlebell_Swings/1.jpg"
+  ]
+ },
+ "Clean and press": {
+  "source": "Clean and Press",
+  "images": [
+   "/exercises/Clean_and_Press/0.jpg",
+   "/exercises/Clean_and_Press/1.jpg"
+  ]
+ }
+}

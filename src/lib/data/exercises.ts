@@ -2,11 +2,11 @@ import type { Db } from '../db/pool';
 
 export interface ExerciseRow {
   id: string; name: string; primaryMuscle: string; secondaryMuscles: string[]; equipment: string | null;
-  instructions: string | null; trackingType: 'weight_reps' | 'bodyweight_reps' | 'duration'; mediaUrl: string | null;
+  instructions: string | null; images: string[]; trackingType: 'weight_reps' | 'bodyweight_reps' | 'duration'; mediaUrl: string | null;
   source: 'system' | 'user' | 'coach'; ownerId: string | null; archived: boolean;
 }
 
-const COLS = `id, name, primary_muscle as "primaryMuscle", secondary_muscles::text[] as "secondaryMuscles", equipment, instructions,
+const COLS = `id, name, public.exercise_image_urls(id, image_urls) as images, primary_muscle as "primaryMuscle", secondary_muscles::text[] as "secondaryMuscles", equipment, instructions,
   tracking_type as "trackingType", media_url as "mediaUrl", source, owner_id as "ownerId", archived_at is not null as archived`;
 
 export async function listExercises(db: Db, opts: { q?: string; muscle?: string; scope?: 'all' | 'mine'; userId?: string; includeArchived?: boolean } = {}): Promise<ExerciseRow[]> {

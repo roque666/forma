@@ -35,11 +35,11 @@ export default async function SessionPage({ params, searchParams }: { params: Pr
   const isOwner = detail.studentId === user.id;
   if (isOwner && detail.status === 'in_progress') {
     return <SessionLogger mode={"active"} sessionId={detail.id} startedAt={detail.startedAt} title={detail.dayName ?? detail.planName ?? 'Treino livre'} exercises={detail.exercises} previous={data.previous}
-      library={data.library.map((e) => ({ id: e.id, name: e.name, primaryMuscle: e.primaryMuscle, equipment: e.equipment, source: e.source }))} />;
+      library={data.library.map((e) => ({ id: e.id, name: e.name, primaryMuscle: e.primaryMuscle, equipment: e.equipment, source: e.source, images: e.images }))} />;
   }
   if (isOwner && edit === '1' && detail.status === 'completed') {
     return <SessionLogger mode="edit" sessionId={detail.id} startedAt={detail.startedAt} title={detail.dayName ?? detail.planName ?? 'Treino livre'} exercises={detail.exercises} previous={data.previous}
-      library={data.library.map((e) => ({ id: e.id, name: e.name, primaryMuscle: e.primaryMuscle, equipment: e.equipment, source: e.source }))} />;
+      library={data.library.map((e) => ({ id: e.id, name: e.name, primaryMuscle: e.primaryMuscle, equipment: e.equipment, source: e.source, images: e.images }))} />;
   }
   if (detail.status === 'discarded' && isOwner) redirect('/workouts');
   return (

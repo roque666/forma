@@ -40,3 +40,8 @@ input[type='number'] { -moz-appearance: textfield; }
 @media (prefers-reduced-motion: reduce) { *, ::before, ::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
 .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
 dialog::backdrop { background: rgb(0 0 0 / 0.55); backdrop-filter: blur(2px); }
+
+/* Exercícios: alterna entre a posição inicial e a final (2 imagens). */
+@keyframes ex-swap { 0%, 42% { opacity: 0; } 58%, 100% { opacity: 1; } }
+.ex-swap { animation: ex-swap 2.4s ease-in-out infinite alternate; }
+@media (prefers-reduced-motion: reduce) { .ex-swap { animation: none; opacity: 0; } }

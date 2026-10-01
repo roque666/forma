@@ -5,6 +5,7 @@ import { withUser } from '@/lib/db/pool';
 import { listExercises } from '@/lib/data/exercises';
 import { MUSCLES, MUSCLE_LABELS } from '@/lib/labels';
 import { Card, PageHeader } from '@/components/ui/card';
+import { ExercisePhoto } from '@/components/training/exercise-media';
 import { Badge, EmptyState } from '@/components/ui/feedback';
 import { LinkButton } from '@/components/ui/button';
 import { inputCls } from '@/components/ui/styles';
@@ -53,8 +54,9 @@ export default async function ExercisesPage({ searchParams }: { searchParams: Pr
       ) : (
         <Card className="divide-y divide-line p-0 sm:p-0">
           {list.map((e) => (
-            <Link key={e.id} href={`/exercises/${e.id}`} className="flex items-center justify-between gap-3 px-4 py-3.5 transition hover:bg-surface2">
-              <div className="min-w-0">
+            <Link key={e.id} href={`/exercises/${e.id}`} className="flex items-center gap-3 px-4 py-3 transition hover:bg-surface2">
+              <ExercisePhoto images={e.images} alt="" className="h-14 w-14 shrink-0" />
+              <div className="min-w-0 flex-1">
                 <p className="truncate font-medium">{e.name}{e.archived && <span className="ml-2 text-xs text-muted">(arquivado)</span>}</p>
                 <p className="truncate text-xs text-muted">{MUSCLE_LABELS[e.primaryMuscle]}{e.secondaryMuscles.length > 0 && ` · ${e.secondaryMuscles.map((m) => MUSCLE_LABELS[m]).join(', ')}`}{e.equipment && ` · ${e.equipment}`}</p>
               </div>

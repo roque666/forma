@@ -24,6 +24,9 @@ Para uso pessoal, o mais simples é alojar a app (ex.: Vercel/Render/Fly) com um
 ## Coach como atleta
 Uma conta de coach tem um interruptor **Coach ⇄ O meu treino**. Em "O meu treino" usa a app de atleta com dados só seus e, por ser coach, pode também: partilhar exercícios/alimentos com os seus atletas, editar a biblioteca base, transformar planos seus em modelo ou enviá-los a um atleta, e definir o objetivo nutricional sem avisos.
 
+## Imagens e vídeos dos exercícios
+Os exercícios base têm 2 imagens (posição inicial/final) da [Free Exercise DB](https://github.com/yuhonas/free-exercise-db) (Unlicense, domínio público), guardadas em `public/exercises`; a ligação nome → imagens está em `scripts/exercise-media.json` e é aplicada por `npm run db:seed:system`. Qualquer exercício pode ter 1 imagem carregada (reduzida no telemóvel, guardada na BD com RLS e servida por `/api/exercise-image/[id]`) e um link de vídeo (YouTube embutido).
+
 ## Segurança
 - Isolamento de dados por **RLS no Postgres**: cada pedido corre com `set local role authenticated` e `request.jwt.claim.sub` = utilizador (`withUser`). `withAdmin` só é usado em registo, sessões, tentativas de login e criação de contas de atleta pelo coach.
 - Coach só vê dados de atletas com ligação ativa; correções do coach passam por funções auditadas.
@@ -31,7 +34,7 @@ Uma conta de coach tem um interruptor **Coach ⇄ O meu treino**. Em "O meu trei
 - O utilizador da `DATABASE_URL` tem de poder fazer `SET ROLE authenticated`.
 
 ## Scripts
-`npm test` (vitest, 60 testes), `npm run test:e2e` (Playwright, 21 testes: os 15 fluxos, isolamento e modo atleta do coach), `npm run typecheck`, `npm run build`.
+`npm test` (vitest, 60 testes), `npm run test:e2e` (Playwright, 25 testes: os 15 fluxos, isolamento, modo atleta do coach e imagens/vídeos), `npm run typecheck`, `npm run build`.
 
 ## Limitações conhecidas
 - Emails (convites, recuperação) só vão para log / `.outbox`; falta configurar um fornecedor.

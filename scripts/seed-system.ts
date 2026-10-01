@@ -2,6 +2,13 @@
 import pg from 'pg';
 import { EXERCISES } from '../db/seed/exercises';
 import { FOODS } from '../db/seed/foods';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
+// Imagens dos exercícios base (Free Exercise DB, domínio público): nome do exercício -> ficheiros em /public/exercises
+const MEDIA: Record<string, { source: string; images: string[] }> = JSON.parse(
+  readFileSync(join(process.cwd(), 'scripts', 'exercise-media.json'), 'utf8'),
+);
 
 const url = process.env.DATABASE_URL;
 if (!url) throw new Error('DATABASE_URL não definido');
@@ -21,6 +28,11 @@ async function main() {
       );
       ex += r.rowCount ?? 0;
     }
+    let withImages = 0;
+    for (const [name, m] of Object.entries(MEDIA)) {
+      const r = await client.query(`update public.exercises set image_urls = $2::text[] where source = 'system' and lower(name) = lower($1)`, [name, m.images]);
+      withImages += r.rowCount ?? 0;
+    }
     let fd = 0;
     for (const [name, category, kcal, protein, carbs, fat, fiber, density, servings] of FOODS) {
       const r = await client.query(
@@ -38,7 +50,7 @@ async function main() {
       }
     }
     await client.query('commit');
-    console.log(`seed de sistema: ${ex} exercícios e ${fd} alimentos novos`);
+    console.log(`seed de sistema: ${ex} exercícios e ${fd} alimentos novos; ${withImages} exercícios com imagens`);
   } catch (e) {
     await client.query('rollback');
     throw e;

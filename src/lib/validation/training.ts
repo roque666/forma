@@ -11,6 +11,8 @@ export const exerciseSchema = z.object({
   equipment: optionalText(80),
   instructions: optionalText(2000),
   trackingType: z.enum(['weight_reps', 'bodyweight_reps', 'duration']).default('weight_reps'),
+  mediaUrl: z.preprocess((v) => (typeof v === 'string' && v.trim() === '' ? undefined : v),
+    z.string().trim().max(300, 'Link demasiado longo').url('Link inválido').refine((u) => u.startsWith('https://'), 'O link tem de começar por https://').optional()),
 }).refine((v) => !v.secondaryMuscles.includes(v.primaryMuscle), { path: ['secondaryMuscles'], message: 'O músculo principal não pode ser secundário' });
 
 export const planSchema = z.object({

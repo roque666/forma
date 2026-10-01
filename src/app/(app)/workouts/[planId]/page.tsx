@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { ConfirmSubmit } from '@/components/ui/confirm-submit';
 import { ActionForm, SelectField, SubmitButton, TextAreaField, TextField } from '@/components/ui/form';
 import { AddDayForm, AddExerciseButton, DayEditForm, ExerciseMetaForm, MoveButtons, SetsEditor } from '@/components/training/plan-editor';
+import { ExercisePhoto } from '@/components/training/exercise-media';
 import { MUSCLE_LABELS, trackingHint } from '@/lib/labels';
 import { weekdayShort } from '@/lib/dates';
 
@@ -28,7 +29,7 @@ export default async function PlanPage({ params }: { params: Promise<{ planId: s
     students: user.realRole === 'coach' ? await listActiveStudents(db) : [],
   }));
   if (!plan) notFound();
-  const picker = exercises.map((e) => ({ id: e.id, name: e.name, primaryMuscle: e.primaryMuscle, equipment: e.equipment, source: e.source }));
+  const picker = exercises.map((e) => ({ id: e.id, name: e.name, primaryMuscle: e.primaryMuscle, equipment: e.equipment, source: e.source, images: e.images }));
   const idForm = (extra?: Record<string, string>) => (
     <>
       <input type="hidden" name="id" value={plan.id} />
@@ -64,7 +65,8 @@ export default async function PlanPage({ params }: { params: Promise<{ planId: s
                 {day.exercises.map((pe) => (
                   <details key={pe.id} className="group rounded-xl border border-line bg-bg/40" open={day.exercises.length <= 3}>
                     <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-3 py-3">
-                      <div className="min-w-0">
+                      <ExercisePhoto images={pe.images} alt="" className="h-12 w-12 shrink-0" rounded="rounded-lg" />
+                      <div className="min-w-0 flex-1">
                         <p className="truncate font-semibold">{pe.exerciseName}</p>
                         <p className="truncate text-xs text-muted">{MUSCLE_LABELS[pe.primaryMuscle]} · {pe.sets.length} séries{trackingHint(pe.trackingType) ? ` · ${trackingHint(pe.trackingType)}` : ''} · {pe.restSeconds}s descanso</p>
                       </div>

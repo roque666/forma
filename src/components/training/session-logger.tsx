@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Check, Clock, Minus, Plus, Trash2, Trophy, X, Flag } from 'lucide-react';
 import { addSessionExerciseAction, addSetAction, discardSessionAction, finishSessionAction, removeSessionExerciseAction, removeSetAction, saveSetAction } from '@/lib/actions/training';
 import type { SessionExerciseRow } from '@/lib/data/sessions';
+import { ExerciseThumb } from './exercise-media';
 import { ExercisePicker, type PickerExercise } from './exercise-picker';
 import { Button } from '@/components/ui/button';
 import { Modal } from '@/components/ui/modal';
@@ -171,7 +172,8 @@ export function SessionLogger({ sessionId, startedAt, title, exercises, previous
           return (
             <section key={e.id} className="rounded-2xl border border-line bg-surface p-3 shadow-card sm:p-4" aria-label={e.exerciseName}>
               <div className="mb-3 flex items-start justify-between gap-2 px-1">
-                <div className="min-w-0"><h2 className="truncate text-base font-bold">{e.exerciseName}</h2><p className="text-xs text-muted">{e.primaryMuscle ? MUSCLE_LABELS[e.primaryMuscle] : ''}{e.restSeconds ? ` · descanso ${e.restSeconds}s` : ''}</p></div>
+                <ExerciseThumb name={e.exerciseName} images={e.images} videoUrl={e.mediaUrl} className="h-14 w-14" />
+                <div className="min-w-0 flex-1"><h2 className="truncate text-base font-bold">{e.exerciseName}</h2><p className="text-xs text-muted">{e.primaryMuscle ? MUSCLE_LABELS[e.primaryMuscle] : ''}{e.restSeconds ? ` · descanso ${e.restSeconds}s` : ''}</p></div>
                 <button aria-label={`Remover ${e.exerciseName}`} disabled={busyStruct} onClick={() => struct(() => removeSessionExerciseAction(sessionId, e.id))} className="rounded-lg p-2 text-muted hover:bg-danger/10 hover:text-danger"><Trash2 className="h-4 w-4" /></button>
               </div>
               <div className={cn('grid items-center gap-2 px-1 pb-1 text-center text-[11px] font-semibold uppercase tracking-wide text-muted', isDuration ? 'grid-cols-[2rem_1fr_1fr_3.5rem]' : 'grid-cols-[2rem_1fr_1fr_3rem_3.5rem]')}>

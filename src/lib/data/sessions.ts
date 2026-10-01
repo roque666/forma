@@ -7,7 +7,7 @@ export interface SessionSetRow {
 }
 export interface SessionExerciseRow {
   id: string; exerciseId: string | null; exerciseName: string; position: number; restSeconds: number; notes: string | null;
-  trackingType: string; primaryMuscle: string | null; sets: SessionSetRow[];
+  trackingType: string; primaryMuscle: string | null; images: string[]; mediaUrl: string | null; sets: SessionSetRow[];
 }
 export interface SessionDetail {
   id: string; studentId: string; planId: string | null; planDayId: string | null; planName: string | null; dayName: string | null;
@@ -26,7 +26,8 @@ export async function getSessionDetail(db: Db, sessionId: string): Promise<Sessi
   if (!s) return null;
   const exs = await db.query<Omit<SessionExerciseRow, 'sets'>>(
     `select se.id, se.exercise_id as "exerciseId", se.exercise_name as "exerciseName", se.position, se.rest_seconds as "restSeconds", se.notes,
-            coalesce(e.tracking_type::text, 'weight_reps') as "trackingType", e.primary_muscle::text as "primaryMuscle"
+            coalesce(e.tracking_type::text, 'weight_reps') as "trackingType", e.primary_muscle::text as "primaryMuscle",
+            coalesce(public.exercise_image_urls(e.id, e.image_urls), '{}') as images, e.media_url as "mediaUrl"
        from public.session_exercises se left join public.exercises e on e.id = se.exercise_id
       where se.session_id = $1 order by se.position, se.exercise_name`, [sessionId]);
   const sets = await db.query<SessionSetRow & { sessionExerciseId: string }>(
