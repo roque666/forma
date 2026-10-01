@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Trophy, Pencil, Trash2 } from 'lucide-react';
+import { Camera, Trophy, Pencil, Trash2 } from 'lucide-react';
 import type { PrEventRow, SessionDetail } from '@/lib/data/sessions';
 import { exerciseStats, sessionTotals } from '@/lib/training/metrics';
 import { Card, CardTitle, PageHeader } from '@/components/ui/card';
@@ -39,6 +39,12 @@ export function SessionSummary({ detail, prs, comments, corrections, viewer, stu
         <Stat label="Reps" value={fmtNum(totals.totalReps, 0)} />
         <Stat label="Volume" value={fmtNum(totals.volumeKg, 0)} unit="kg" />
       </Card>
+      {isOwner && detail.status === 'completed' && detail.endedAt && Date.now() - new Date(detail.endedAt).getTime() < 6 * 3_600_000 && (
+        <Card className="mb-4 flex items-center justify-between gap-3">
+          <p className="flex items-center gap-2 text-sm"><Camera className="h-4 w-4 shrink-0 text-accent-text" /> Queres registar uma foto do corpo de hoje?</p>
+          <LinkButton href="/photos#nova" variant="outline" size="sm">Tirar foto</LinkButton>
+        </Card>
+      )}
       {prs.length > 0 && (
         <Card className="mb-4 border-accent-text/40">
           <CardTitle>Recordes neste treino 🏆</CardTitle>

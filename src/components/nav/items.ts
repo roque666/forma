@@ -1,4 +1,4 @@
-import { CalendarDays, Dumbbell, Home, Scale, TrendingUp, User, Users, Utensils, type LucideIcon } from 'lucide-react';
+import { Camera, CalendarDays, Dumbbell, Home, Scale, TrendingUp, User, Users, Utensils, type LucideIcon } from 'lucide-react';
 import type { Role } from '@/lib/auth/session';
 
 export interface NavItem { href: string; label: string; icon: LucideIcon }
@@ -10,13 +10,14 @@ const nutrition = { href: '/nutrition', label: 'Nutrição', icon: Utensils };
 const weight = { href: '/weight', label: 'Peso', icon: Scale };
 const history = { href: '/history', label: 'Histórico', icon: CalendarDays };
 const profile = { href: '/profile', label: 'Perfil', icon: User };
+const photos = { href: '/photos', label: 'Fotos', icon: Camera };
 const students = { href: '/students', label: 'Atletas', icon: Users };
 
 export const NAV: Record<Role, { all: NavItem[]; primary: NavItem[]; more: NavItem[] }> = {
   student: {
-    all: [dashboard, workouts, progress, nutrition, weight, history, profile],
+    all: [dashboard, workouts, progress, nutrition, weight, photos, history, profile],
     primary: [dashboard, workouts, nutrition, progress],
-    more: [weight, history, profile],
+    more: [weight, photos, history, profile],
   },
   coach: {
     all: [dashboard, students, workouts, nutrition, progress, history, profile],

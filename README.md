@@ -41,3 +41,11 @@ Os exercícios base têm 2 imagens (posição inicial/final) da [Free Exercise D
 - Registo de coach exige `COACH_SIGNUP_CODE`.
 - Valores nutricionais base são aproximados (verificar licença/fonte INSA).
 - Ainda por validar contra um Supabase real (`supabase db reset`).
+
+## Fotos de progresso
+
+Página **Fotos** (atleta e coach em "O meu treino"): regista fotos do corpo (frente, lado, costas) com data, peso e nota opcionais, vê a linha do tempo e compara duas datas com um slider "antes/depois". Depois de um treino aparece um convite para registar a foto do dia.
+
+- Privadas por defeito. A RLS (migração `0010`) só deixa o dono ver/escrever; o coach ativo só vê as fotos marcadas como partilhadas pelo atleta (`/students/<id>/photos`).
+- Guardadas na base de dados (reduzidas no telemóvel para ~1100 px + miniatura de 320 px), servidas por `/api/progress-photo/<id>` com `no-store` (nunca em cache). Apagar uma foto ou a conta elimina-as mesmo.
+- Aplicar na produção: `npm.cmd run db:migrate`.

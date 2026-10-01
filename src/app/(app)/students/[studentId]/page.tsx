@@ -59,6 +59,7 @@ export default async function StudentPage({ params, searchParams }: { params: Pr
         actions={<form action={endLinkAction}><input type="hidden" name="id" value={base.overview.linkId} /><ConfirmSubmit variant="ghost" confirmLabel="Terminar acompanhamento?">Terminar vínculo</ConfirmSubmit></form>} />
       <nav className="-mx-1 mb-5 flex gap-1 overflow-x-auto px-1 pb-1" aria-label="Secções do atleta">
         {TABS.map(([k, label]) => <Link key={k} href={href(k)} aria-current={tab === k ? 'page' : undefined} className={cn('shrink-0 rounded-full px-4 py-2 text-sm font-semibold', tab === k ? 'bg-accent text-accent-fg' : 'bg-surface2 text-muted hover:text-fg')}>{label}</Link>)}
+        <Link href={`/students/${studentId}/photos`} className="shrink-0 rounded-full bg-surface2 px-4 py-2 text-sm font-semibold text-muted hover:text-fg">Fotos</Link>
       </nav>
       {tab === 'summary' && <Summary viewerId={user.id} studentId={studentId} tz={user.timezone} today={today} follow={follow} />}
       {tab === 'workouts' && <Workouts viewerId={user.id} studentId={studentId} name={base.student.fullName} />}
