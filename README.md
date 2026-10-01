@@ -31,7 +31,7 @@ Uma conta de coach tem um interruptor **Coach ⇄ O meu treino**. Em "O meu trei
 - O utilizador da `DATABASE_URL` tem de poder fazer `SET ROLE authenticated`.
 
 ## Scripts
-`npm test` (vitest, 60 testes), `npm run test:e2e` (Playwright, 20 testes: os 15 fluxos, isolamento e modo atleta do coach), `npm run typecheck`, `npm run build`.
+`npm test` (vitest, 60 testes), `npm run test:e2e` (Playwright, 21 testes: os 15 fluxos, isolamento e modo atleta do coach), `npm run typecheck`, `npm run build`.
 
 ## Limitações conhecidas
 - Emails (convites, recuperação) só vão para log / `.outbox`; falta configurar um fornecedor.

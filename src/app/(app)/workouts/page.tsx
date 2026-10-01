@@ -10,6 +10,8 @@ import { Card, CardTitle, LinkCard, PageHeader } from '@/components/ui/card';
 import { Badge, EmptyState } from '@/components/ui/feedback';
 import { LinkButton } from '@/components/ui/button';
 import { StartWorkoutButton } from '@/components/training/start-button';
+import { applyTemplateAction } from '@/lib/actions/training';
+import { SubmitButton } from '@/components/ui/form';
 
 export const metadata = { title: 'Treinos' };
 
@@ -32,10 +34,11 @@ function PlanRow({ p }: { p: PlanSummary }) {
 async function StudentView({ user }: { user: SessionUser }) {
   const today = todayInTz(user.timezone);
   const data = await withUser(user.id, async (db: Db) => {
-    const [active, plans, inProgress, ctx] = await Promise.all([
+    const [active, plans, inProgress, ctx, templates] = await Promise.all([
       getActivePlan(db, user.id), listPlans(db, user.id), getInProgressSession(db, user.id), getScheduleContext(db, user.id, today, user.timezone),
+      user.realRole === 'coach' ? listTemplates(db, user.id) : Promise.resolve([] as PlanSummary[]), // coach em "O meu treino" vê os seus modelos
     ]);
-    return { active, plans, inProgress, ctx };
+    return { active, plans, inProgress, ctx, templates };
   });
   const sched = data.active ? resolveSchedule({ days: data.active.days, today, ...data.ctx }) : null;
   const others = data.plans.filter((p) => !p.isActive);
@@ -83,6 +86,18 @@ async function StudentView({ user }: { user: SessionUser }) {
       {data.active && (<section className="mb-6"><CardTitle>Plano atual</CardTitle><PlanRow p={data.active} /></section>)}
       {others.length > 0 && (
         <section className="mb-6"><CardTitle>Outros planos</CardTitle><div className="grid gap-3 sm:grid-cols-2">{others.map((p) => <PlanRow key={p.id} p={p} />)}</div></section>
+      )}
+      {data.templates.length > 0 && (
+        <section className="mb-6">
+          <CardTitle>Os meus modelos</CardTitle>
+          <div className="grid gap-3 sm:grid-cols-2">{data.templates.map((p) => (
+            <div key={p.id} className="space-y-2">
+              <PlanRow p={p} />
+              <form action={applyTemplateAction}><input type="hidden" name="id" value={p.id} /><SubmitButton variant="outline" size="md" className="w-full" pendingLabel="A copiar…">Usar como meu plano</SubmitButton></form>
+            </div>))}
+          </div>
+          <p className="mt-2 text-xs text-muted">É criada uma cópia tua e passa a ser o teu plano atual; o modelo não muda.</p>
+        </section>
       )}
     </>
   );

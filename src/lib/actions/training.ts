@@ -95,6 +95,19 @@ export async function duplicatePlanAction(fd: FormData) {
   redirect(`/workouts/${newId}`);
 }
 
+/** "Usar como meu plano": copia um modelo (do próprio coach) para a conta e torna-o o plano atual. */
+export async function applyTemplateAction(fd: FormData) {
+  const user = await requireUser();
+  const id = idOf(fd.get('id'));
+  const newId = await withUser(user.id, async (db) => {
+    const copy = await t.duplicatePlan(db, id, { targetStudentId: user.id, asTemplate: false });
+    await t.activatePlan(db, copy);
+    return copy;
+  });
+  revalidatePath('/workouts');
+  redirect(`/workouts/${newId}`);
+}
+
 export async function assignTemplateAction(_p: FormState, fd: FormData): Promise<FormState> {
   return run(async () => {
     const user = await requireUser();

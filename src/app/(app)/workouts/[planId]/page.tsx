@@ -44,6 +44,7 @@ export default async function PlanPage({ params }: { params: Promise<{ planId: s
         </span>}
         actions={<>
           {!plan.isActive && !plan.isTemplate && !plan.archived && <form action={A.activatePlanAction}>{idForm()}<SubmitButton variant="primary" size="md"><CheckCircle2 className="h-4 w-4" /> Tornar atual</SubmitButton></form>}
+          {plan.isTemplate && user.role === 'student' && <form action={A.applyTemplateAction}>{idForm()}<SubmitButton variant="primary" size="md">Usar como meu plano</SubmitButton></form>}
           <form action={A.duplicatePlanAction}>{idForm()}<SubmitButton variant="outline" size="md"><Copy className="h-4 w-4" /> Duplicar</SubmitButton></form>
         </>} />
 
@@ -102,7 +103,7 @@ export default async function PlanPage({ params }: { params: Promise<{ planId: s
               <SubmitButton size="md" variant="secondary">Guardar</SubmitButton>
             </ActionForm>
           </Card>
-          {plan.isTemplate && user.role === 'coach' && (
+          {plan.isTemplate && user.realRole === 'coach' && (
             <Card>
               <CardTitle>Atribuir a atleta</CardTitle>
               {students.length === 0 ? <p className="text-sm text-muted">Ainda não tens atletas ativos.</p> : (

@@ -98,7 +98,7 @@ export function dbErrorMessage(e: unknown): string {
   const err = e as { code?: string; message?: string; constraint?: string };
   const msg = err?.message ?? '';
   const fromRaise = err?.code && !/violates|duplicate key|invalid input|out of range|null value|permission denied/i.test(msg);
-  if (fromRaise && ['P0002', '22023', '55000', '42501', '23505'].includes(err.code!)) return msg;
+  if (fromRaise && ['P0002', '22023', '55000', '42501', '23505'].includes(err.code!)) return msg.replace(/\b(a)lunos?\b/gi, (m) => (/^A/.test(m) ? 'Atleta' : 'atleta') + (/s$/i.test(m) ? 's' : '')); // vocabulário: "atleta"
   switch (err?.code) {
     case '42501':
       return 'Não tens permissão para esta ação.';

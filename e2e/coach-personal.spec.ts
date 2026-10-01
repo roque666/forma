@@ -148,3 +148,16 @@ test('liberdades do coach no modo atleta: partilhar, editar base, objetivo sem a
   await page.getByRole('link', { name: /Supino/ }).first().click();
   await expect(page.getByText(/não pode ser editado/)).toBeVisible();
 });
+
+test('modelos do coach aparecem em "O meu treino" e podem ser usados como plano', async ({ page }) => {
+  await login(page, 'coach@demo.pt', DEMO_PASSWORD);
+  // o modelo demo "Full body iniciante" é do coach
+  await page.getByRole('button', { name: 'O meu treino' }).click();
+  await page.goto('/workouts');
+  await expect(page.getByText('Os meus modelos')).toBeVisible();
+  await expect(page.getByText('Full body iniciante').first()).toBeVisible();
+  await page.locator('div.space-y-2', { hasText: 'Full body iniciante' }).getByRole('button', { name: 'Usar como meu plano' }).click();
+  await expect(page).toHaveURL(/\/workouts\/[0-9a-f-]{36}/);
+  await expect(page.getByText('Plano atual')).toBeVisible();
+  await expect(page.getByRole('heading', { name: /Full body iniciante/ })).toBeVisible();
+});
