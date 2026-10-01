@@ -70,7 +70,7 @@ export async function withUser<T>(userId: string, fn: (db: Db) => Promise<T>): P
 
 /**
  * Acesso privilegiado (sem RLS). SÓ para operações de servidor que não pertencem a um utilizador:
- * registo, sessões, tentativas de login, criação de contas de alunos pelo coach, seeds.
+ * registo, sessões, tentativas de login, criação de contas de atletas pelo coach, seeds.
  * Nunca usar com ids vindos do cliente sem validar permissões antes.
  */
 export async function withAdmin<T>(fn: (db: Db) => Promise<T>): Promise<T> {

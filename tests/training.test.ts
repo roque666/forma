@@ -12,22 +12,22 @@ d('treino: exercícios, planos, sessões, PRs', () => {
   let student: TestUser, other: TestUser, coach: TestUser, bench: string, planId: string, dayId: string, peId: string;
 
   beforeAll(async () => {
-    student = await makeUser('student', 'aluno-treino');
+    student = await makeUser('student', 'atleta-treino');
     other = await makeUser('student', 'outro-treino');
     coach = await makeUser('coach', 'coach-treino');
     await link(coach, student);
     bench = await systemExercise('Supino reto com barra');
   });
 
-  it('CRUD de exercício personalizado (aluno) e arquivo quando tem histórico', async () => {
+  it('CRUD de exercício personalizado (atleta) e arquivo quando tem histórico', async () => {
     const id = await as(student, (db) => t.createExercise(db, student, { name: 'Remada Pendlay', primaryMuscle: 'upper_back', secondaryMuscles: ['biceps'], trackingType: 'weight_reps', equipment: 'Barra' }));
     const found = await as(student, (db) => listExercises(db, { q: 'pendlay' }));
     expect(found.map((e) => e.id)).toContain(id);
-    // invisível a outro aluno
+    // invisível a outro atleta
     expect((await as(other, (db) => listExercises(db, { q: 'pendlay' }))).length).toBe(0);
     await as(student, (db) => t.updateExercise(db, id, { name: 'Remada Pendlay (barra)', primaryMuscle: 'upper_back', secondaryMuscles: ['biceps', 'lats'], trackingType: 'weight_reps' }));
     expect((await as(student, (db) => listExercises(db, { q: 'pendlay' })))[0].secondaryMuscles).toEqual(['biceps', 'lats']);
-    // outro aluno não consegue editar nem apagar
+    // outro atleta não consegue editar nem apagar
     await expect(as(other, (db) => t.updateExercise(db, id, { name: 'hack', primaryMuscle: 'chest', secondaryMuscles: [], trackingType: 'weight_reps' }))).rejects.toMatchObject({ code: 'P0002' });
     await expect(as(other, (db) => t.removeExercise(db, id))).rejects.toMatchObject({ code: 'P0002' });
     expect(await as(student, (db) => t.removeExercise(db, id))).toBe('deleted');
@@ -176,7 +176,7 @@ d('treino: exercícios, planos, sessões, PRs', () => {
     expect(recs.find((r) => r.prType === 'max_reps')!.value).toBe(10);
   });
 
-  it('coach vê o aluno mas não altera sessões; outro aluno não vê nada', async () => {
+  it('coach vê o atleta mas não altera sessões; outro atleta não vê nada', async () => {
     expect((await as(coach, (db) => listSessions(db, student.id))).length).toBe(1);
     expect((await as(coach, (db) => getPersonalRecords(db, student.id))).length).toBeGreaterThan(0);
     expect((await as(other, (db) => listSessions(db, student.id)))).toEqual([]);
@@ -187,13 +187,13 @@ d('treino: exercícios, planos, sessões, PRs', () => {
     await expect(as(coach, (db) => t.deleteSession(db, student.id, sessions[0].sessionId))).rejects.toMatchObject({ code: 'P0002' });
   });
 
-  it('coach cria plano para o aluno e atribui um modelo', async () => {
+  it('coach cria plano para o atleta e atribui um modelo', async () => {
     const forStudent = await as(coach, (db) => t.createPlan(db, coach, { name: 'Plano do coach', studentId: student.id }));
     const plan = await as(student, (db) => getPlan(db, forStudent));
     expect(plan).toMatchObject({ name: 'Plano do coach', createdByCoach: true, studentId: student.id });
-    // o aluno edita livremente
+    // o atleta edita livremente
     await as(student, (db) => t.updatePlan(db, forStudent, { name: 'Plano do coach (ajustado)' }));
-    // modelo: só coach; invisível para alunos
+    // modelo: só coach; invisível para atletas
     await expect(as(student, (db) => t.createPlan(db, student, { name: 'Modelo', isTemplate: true }))).rejects.toMatchObject({ code: '42501' });
     const tpl = await as(coach, (db) => t.createPlan(db, coach, { name: 'Modelo Full Body', isTemplate: true }));
     const dd = await as(coach, (db) => t.addDay(db, tpl, 'A', [2, 4]));
@@ -203,7 +203,7 @@ d('treino: exercícios, planos, sessões, PRs', () => {
     const ap = await as(student, (db) => getPlan(db, assigned));
     expect(ap!.days[0].weekdays).toEqual([2, 4]);
     expect(ap!.isTemplate).toBe(false);
-    // coach não atribui a aluno de outro
+    // coach não atribui a atleta de outro
     await expect(as(coach, (db) => t.assignTemplate(db, tpl, other.id))).rejects.toMatchObject({ code: '42501' });
   });
 });

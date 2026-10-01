@@ -14,7 +14,7 @@ import { CreateStudentForm, InviteForm, ThresholdsForm } from '@/components/coac
 import { fmtNum, GOAL_LABELS } from '@/lib/labels';
 import { Users } from 'lucide-react';
 
-export const metadata = { title: 'Meus alunos' };
+export const metadata = { title: 'Meus atletas' };
 
 const TONE: Record<FollowUpStatus, Tone> = { on_track: 'ok', attention: 'warn', inactive: 'danger', pending: 'neutral' };
 
@@ -29,8 +29,8 @@ export default async function StudentsPage() {
   const ago = (iso: string | null) => (iso ? relativeDayLabel(isoToLocalDate(iso, user.timezone), today) : 'nunca');
   return (
     <>
-      <PageHeader title="Meus alunos" subtitle={`${active.length} ${active.length === 1 ? 'aluno ativo' : 'alunos ativos'}${pending.length ? ` · ${pending.length} convite(s) pendente(s)` : ''}`} />
-      {active.length === 0 ? <div className="mb-6"><EmptyState icon={<Users className="h-8 w-8" />} title="Ainda não tens alunos" description="Convida um aluno por email ou cria-lhe uma conta com palavra-passe temporária." /></div> : (
+      <PageHeader title="Meus atletas" subtitle={`${active.length} ${active.length === 1 ? 'atleta ativo' : 'atletas ativos'}${pending.length ? ` · ${pending.length} convite(s) pendente(s)` : ''}`} />
+      {active.length === 0 ? <div className="mb-6"><EmptyState icon={<Users className="h-8 w-8" />} title="Ainda não tens atletas" description="Convida um atleta por email ou cria-lhe uma conta com palavra-passe temporária." /></div> : (
         <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {active.map((r) => (
             <LinkCard key={r.linkId} href={`/students/${r.studentId}`} data-testid="student-card">
@@ -55,7 +55,7 @@ export default async function StudentsPage() {
       )}
       <div className="grid gap-4 lg:grid-cols-2">
         <Card><CardTitle>Convidar por email</CardTitle><InviteForm /></Card>
-        <Card><CardTitle>Criar conta para um aluno</CardTitle><CreateStudentForm /></Card>
+        <Card><CardTitle>Criar conta para um atleta</CardTitle><CreateStudentForm /></Card>
       </div>
       <details className="mt-4 rounded-2xl border border-line p-4"><summary className="cursor-pointer text-sm font-semibold">Limites dos alertas de acompanhamento</summary><div className="mt-3 max-w-md"><ThresholdsForm t={thresholds} /></div></details>
     </>

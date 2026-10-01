@@ -1,7 +1,7 @@
 import type { Db } from '../db/pool';
 import type { PrEventRow } from '../data/sessions';
 
-export interface Actor { id: string; role: 'student' | 'coach' }
+export interface Actor { id: string; role: 'student' | 'coach'; /** papel real da conta (um coach em "O meu treino" tem role 'student') */ realRole?: 'student' | 'coach' }
 
 const NOT_FOUND = Object.assign(new Error('Registo não encontrado.'), { code: 'P0002' });
 
@@ -14,7 +14,7 @@ export async function createExercise(db: Db, actor: Actor, i: ExerciseInput): Pr
   const r = await db.one<{ id: string }>(
     `insert into public.exercises (name, primary_muscle, secondary_muscles, equipment, instructions, tracking_type, source, owner_id)
      values ($1, $2::public.muscle_group, $3::public.muscle_group[], $4, $5, $6::public.exercise_tracking, $7, $8) returning id`,
-    [i.name, i.primaryMuscle, i.secondaryMuscles, i.equipment ?? null, i.instructions ?? null, i.trackingType, actor.role === 'coach' ? 'coach' : 'user', actor.id]);
+    [i.name, i.primaryMuscle, i.secondaryMuscles, i.equipment ?? null, i.instructions ?? null, i.trackingType, (actor.realRole ?? actor.role) === 'coach' ? 'coach' : 'user', actor.id]);
   return r!.id;
 }
 
@@ -48,7 +48,7 @@ export async function createPlan(db: Db, actor: Actor, i: { name: string; descri
   const isTemplate = !!i.isTemplate;
   if (isTemplate && actor.role !== 'coach') throw Object.assign(new Error('Só coaches criam modelos.'), { code: '42501' });
   const studentId = isTemplate ? null : actor.role === 'coach' ? i.studentId : actor.id;
-  if (!isTemplate && !studentId) throw Object.assign(new Error('Escolhe o aluno.'), { code: '22023' });
+  if (!isTemplate && !studentId) throw Object.assign(new Error('Escolhe o atleta.'), { code: '22023' });
   const hasActive = studentId
     ? (await db.one('select 1 from public.workout_plans where student_id = $1 and is_active and archived_at is null', [studentId])) != null
     : true;
@@ -76,7 +76,7 @@ export async function duplicatePlan(db: Db, id: string, o: { targetStudentId?: s
   return r!.id;
 }
 
-/** Atribui um modelo do coach a um aluno (cópia independente). Fica ativo se o aluno ainda não tiver plano atual. */
+/** Atribui um modelo do coach a um atleta (cópia independente). Fica ativo se o atleta ainda não tiver plano atual. */
 export async function assignTemplate(db: Db, templateId: string, studentId: string): Promise<string> {
   const id = await duplicatePlan(db, templateId, { targetStudentId: studentId, asTemplate: false });
   const hasActive = await db.one('select 1 from public.workout_plans where student_id = $1 and is_active and archived_at is null and id <> $2', [studentId, id]);

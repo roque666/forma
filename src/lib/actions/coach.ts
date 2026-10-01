@@ -25,7 +25,7 @@ export async function inviteStudentAction(_p: FormState, fd: FormData): Promise<
     await withUser(coach.id, (db) => c.inviteStudent(db, p.data.email));
     await sendMail({ to: p.data.email, subject: `${coach.fullName} convidou-te para a Forma`, text: `${coach.fullName} quer acompanhar o teu treino e nutrição na Forma.\nInicia sessão (ou cria conta com este email) e aceita o convite no teu perfil.` });
     revalidatePath('/students');
-    return ok(undefined, 'Convite enviado. O aluno tem de o aceitar para partilhar os dados.');
+    return ok(undefined, 'Convite enviado. O atleta tem de o aceitar para partilhar os dados.');
   });
 }
 
@@ -34,7 +34,7 @@ export async function createStudentAction(_p: FormState, fd: FormData): Promise<
     const coach = await requireCoach();
     const p = parse(z.object({ fullName: trimmed(2, 100, 'Indica o nome'), email: z.string().trim().toLowerCase().email('Email inválido').max(200), consent: checkbox }), formToObject(fd));
     if ('error' in p) return p.error;
-    if (!p.data.consent) return fail('Confirma que o aluno autorizou a partilha de dados.', { consent: 'Obrigatório' });
+    if (!p.data.consent) return fail('Confirma que o atleta autorizou a partilha de dados.', { consent: 'Obrigatório' });
     const r = await withAdmin((db) => c.createStudentAccount(db, coach, p.data));
     revalidatePath('/students');
     return ok({ email: p.data.email, tempPassword: r.tempPassword, studentId: r.studentId }, 'Conta criada.');

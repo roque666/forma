@@ -54,7 +54,7 @@ export async function getPlan(db: Db, planId: string): Promise<PlanDetail | null
   return { ...plan, days: days.map((d) => ({ ...d, exercises: exsByDay.get(d.id) ?? [] })) };
 }
 
-/** Plano atual do aluno com os dias (para "treino de hoje / próximo"). */
+/** Plano atual do atleta com os dias (para "treino de hoje / próximo"). */
 export async function getActivePlan(db: Db, studentId: string): Promise<PlanDetail | null> {
   const row = await db.one<{ id: string }>(
     'select id from public.workout_plans where student_id = $1 and is_active and archived_at is null and not is_template limit 1', [studentId]);

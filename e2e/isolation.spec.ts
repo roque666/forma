@@ -9,7 +9,7 @@ async function q<T = any>(sql: string, p: unknown[] = []): Promise<T[]> {
   try { return (await c.query(sql, p)).rows; } finally { await c.end(); }
 }
 
-test('aluno não acede a treinos, planos, exercícios ou dados de outro aluno', async ({ page }) => {
+test('atleta não acede a treinos, planos, exercícios ou dados de outro atleta', async ({ page }) => {
   const [ana] = await q<{ id: string }>(`select id from auth.users where email = 'ana@demo.pt'`);
   const [s] = await q<{ id: string }>(`select id from public.workout_sessions where student_id = $1 limit 1`, [ana.id]);
   const [p] = await q<{ id: string }>(`select id from public.workout_plans where student_id = $1 limit 1`, [ana.id]);
@@ -20,12 +20,12 @@ test('aluno não acede a treinos, planos, exercícios ou dados de outro aluno', 
     // (a página é servida em streaming, por isso o estado HTTP pode ser 200; o que conta é o conteúdo)
     await expect(page.getByText('Página não encontrada'), url).toBeVisible();
   }
-  // o aluno também não vê rotas de coach
+  // o atleta também não vê rotas de coach
   await page.goto(`/students/${ana.id}`);
   await expect(page).toHaveURL(/\/dashboard/);
 });
 
-test('coach só vê alunos associados (Tiago tem convite pendente e não partilha dados)', async ({ page }) => {
+test('coach só vê atletas associados (Tiago tem convite pendente e não partilha dados)', async ({ page }) => {
   const [tiago] = await q<{ id: string }>(`select id from auth.users where email = 'tiago@demo.pt'`);
   await login(page, 'coach@demo.pt', DEMO_PASSWORD);
   await page.goto(`/students/${tiago.id}`);

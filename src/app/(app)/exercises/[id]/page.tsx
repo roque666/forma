@@ -20,15 +20,18 @@ export default async function ExercisePage({ params }: { params: Promise<{ id: s
   const ex = await withUser(user.id, (db) => getExercise(db, id));
   if (!ex) notFound();
   const mine = ex.ownerId === user.id;
+  const isBase = ex.ownerId === null;
+  const canEdit = mine || (isBase && user.realRole === 'coach'); // coaches podem corrigir a biblioteca base
   const hasHistory = user.role === 'student' ? (await withUser(user.id, (db) => getPersonalRecords(db, user.id, id))).length > 0 : false;
   return (
     <>
       <PageHeader title={ex.name} back={{ href: '/exercises', label: 'Exercícios' }}
         actions={user.role === 'student' && hasHistory ? <LinkButton href={`/progress/${ex.id}`} variant="outline">Ver progressão</LinkButton> : undefined} />
       <Card className="max-w-2xl space-y-4">
-        {!mine && <Alert>Este exercício faz parte da biblioteca base e não pode ser editado. Cria um exercício próprio se precisares de uma variante.</Alert>}
+        {!canEdit && <Alert>Este exercício faz parte da biblioteca base e não pode ser editado. Cria um exercício próprio se precisares de uma variante.</Alert>}
+        {isBase && canEdit && <Alert tone="warn">Exercício da biblioteca base: as alterações aplicam-se a todos os utilizadores.</Alert>}
         {ex.archived && <Alert tone="warn">Exercício arquivado — não aparece na pesquisa ao criar planos.</Alert>}
-        <ExerciseForm action={updateExerciseAction.bind(null, ex.id)} exercise={ex} readOnly={!mine} />
+        <ExerciseForm action={updateExerciseAction.bind(null, ex.id)} exercise={ex} readOnly={!canEdit} />
       </Card>
       {mine && (
         <Card className="mt-4 max-w-2xl">

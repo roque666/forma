@@ -10,8 +10,8 @@ import { TrendChart } from '@/components/charts/trend-chart';
 import { cn } from '@/components/ui/cn';
 import { fmtNum } from '@/lib/labels';
 
-export async function NutritionStats({ viewerId, studentId, tz, range, ref, href }: {
-  viewerId: string; studentId: string; tz: string; range: 'week' | 'month'; ref: string; href: (range: 'week' | 'month', ref: string) => string;
+export async function NutritionStats({ viewerId, studentId, tz, range, refDate: ref, href }: {
+  viewerId: string; studentId: string; tz: string; range: 'week' | 'month'; refDate: string; href: (range: 'week' | 'month', ref: string) => string;
 }) {
   const from = range === 'week' ? startOfWeek(ref) : startOfMonth(ref);
   const to = range === 'week' ? addDays(from, 6) : endOfMonth(ref);

@@ -10,7 +10,7 @@ const nutrition = { href: '/nutrition', label: 'Nutrição', icon: Utensils };
 const weight = { href: '/weight', label: 'Peso', icon: Scale };
 const history = { href: '/history', label: 'Histórico', icon: CalendarDays };
 const profile = { href: '/profile', label: 'Perfil', icon: User };
-const students = { href: '/students', label: 'Alunos', icon: Users };
+const students = { href: '/students', label: 'Atletas', icon: Users };
 
 export const NAV: Record<Role, { all: NavItem[]; primary: NavItem[]; more: NavItem[] }> = {
   student: {

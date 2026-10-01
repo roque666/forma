@@ -81,6 +81,10 @@ async function main() {
         return;
       }
     }
+    // Postgres 16+: quem cria um papel não fica com permissão de SET ROLE nele. A app precisa disso em cada pedido.
+    if (!supabaseMode) {
+      await client.query('grant authenticated, anon to current_user').catch((e) => console.warn('aviso: grant dos papéis falhou:', (e as Error).message));
+    }
     console.log('migrações em dia');
   } finally {
     await client.end();

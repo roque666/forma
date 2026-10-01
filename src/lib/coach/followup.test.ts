@@ -38,11 +38,11 @@ describe('estado de acompanhamento', () => {
     const r = computeFollowUp({ ...base, lastWorkoutAt: '2026-09-01T10:00:00Z', lastMealDate: '2026-09-02', lastWeighIn: '2026-08-20' }, TODAY);
     expect(r.status).toBe('inactive');
   });
-  it('aluno novo sem atividade tem período de graça (3 dias)', () => {
+  it('atleta novo sem atividade tem período de graça (3 dias)', () => {
     const fresh = { ...base, lastWorkoutAt: null, lastMealDate: null, lastWeighIn: null, hasActivePlan: false, linkedAt: '2026-09-28T10:00:00Z' };
     expect(computeFollowUp(fresh, TODAY).reasons).toEqual(['no_active_plan']);
   });
-  it('aluno associado há semanas sem nada registado', () => {
+  it('atleta associado há semanas sem nada registado', () => {
     const idle = { ...base, lastWorkoutAt: null, lastMealDate: null, lastWeighIn: null, linkedAt: '2026-09-20T10:00:00Z' };
     expect(computeFollowUp(idle, TODAY).reasons).toEqual(['no_workout', 'no_meals', 'no_weigh_in']);
     expect(computeFollowUp({ ...idle, linkedAt: '2026-08-01T10:00:00Z' }, TODAY).status).toBe('inactive');
@@ -57,7 +57,7 @@ describe('estado de acompanhamento', () => {
   });
 });
 
-describe('ordenação de "Meus Alunos"', () => {
+describe('ordenação de "Meus Atletas"', () => {
   it('atenção primeiro, depois inativos, em dia, pendentes; desempate por nº de alertas e nome', () => {
     const mk = (fullName: string, status: any, n = 0) => ({ fullName, followUp: { status, reasons: Array(n).fill('no_meals'), daysSince: { workout: null, meal: null, weighIn: null } } });
     const out = sortByAttention([mk('Zé', 'on_track'), mk('Ana', 'pending'), mk('Bia', 'attention', 1), mk('Rui', 'attention', 3), mk('Eva', 'inactive')]);

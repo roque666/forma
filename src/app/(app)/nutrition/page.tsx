@@ -24,8 +24,8 @@ export default async function NutritionPage({ searchParams }: { searchParams: Pr
     });
     return (
       <>
-        <PageHeader title="Nutrição" subtitle="Consumo de hoje dos teus alunos" />
-        {rows.length === 0 ? <EmptyState title="Ainda sem alunos" action={<LinkButton href="/students" variant="outline">Ir para alunos</LinkButton>} /> : (
+        <PageHeader title="Nutrição" subtitle="Consumo de hoje dos teus atletas" />
+        {rows.length === 0 ? <EmptyState title="Ainda sem atletas" action={<LinkButton href="/students" variant="outline">Ir para atletas</LinkButton>} /> : (
           <div className="grid gap-3 sm:grid-cols-2">{rows.map((r) => {
             const t = totals.get(r.studentId!);
             return (

@@ -21,7 +21,7 @@ export default async function GoalsPage() {
   return (
     <>
       <PageHeader title="Objetivo nutricional" back={{ href: '/nutrition', label: 'Nutrição' }} subtitle={d.goal ? `Atual: ${GOAL_LABELS[d.goal.goalType]} · ${fmtNum(d.goal.caloriesTarget, 0)} kcal` : 'Calcula as tuas calorias e macros'} />
-      <GoalForm today={today} defaults={{
+      <GoalForm today={today} relaxed={user.realRole === 'coach'} defaults={{
         sex: d.profile?.sex, birthDate: d.profile?.birthDate, heightCm: d.profile?.heightCm, activityLevel: d.profile?.activityLevel, bmrFormula: d.profile?.bmrFormula,
         weightKg: d.weights[0]?.weightKg ?? d.goal?.weightKg, bodyFatPct: d.goal?.bodyFatPct, goal: d.goal?.goalType,
       }} />

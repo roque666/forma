@@ -22,9 +22,9 @@ export default async function NewPlanPage({ searchParams }: { searchParams: Prom
             <>
               <SelectField label="Para quem?" name="studentId" defaultValue={sp.template ? '' : sp.student ?? ''}>
                 <option value="">Modelo (reutilizável)</option>
-                {students.map((s) => <option key={s.id} value={s.id}>Aluno: {s.fullName}</option>)}
+                {students.map((s) => <option key={s.id} value={s.id}>Atleta: {s.fullName}</option>)}
               </SelectField>
-              <p className="-mt-2 text-xs text-muted">Depois de criado, podes atribuir modelos a alunos (cria-se uma cópia independente).</p>
+              <p className="-mt-2 text-xs text-muted">Depois de criado, podes atribuir modelos a atletas (cria-se uma cópia independente).</p>
             </>
           )}
           <SubmitButton pendingLabel="A criar…">Criar e adicionar dias</SubmitButton>

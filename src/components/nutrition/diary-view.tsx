@@ -36,7 +36,7 @@ export async function DiaryView({ viewerId, studentId, date, tz, readOnly, hrefF
       {date !== today && <div className="text-center"><Link href={hrefForDate(today)} className="text-sm font-medium text-accent-text">Ir para hoje</Link></div>}
 
       {!goal && (
-        <Alert tone="info">{readOnly ? 'Ainda não há objetivo nutricional definido para este aluno.' : <>Ainda não tens objetivo definido. <Link href={goalsHref} className="font-semibold underline">Calcula as tuas calorias e macros</Link>.</>}
+        <Alert tone="info">{readOnly ? 'Ainda não há objetivo nutricional definido para este atleta.' : <>Ainda não tens objetivo definido. <Link href={goalsHref} className="font-semibold underline">Calcula as tuas calorias e macros</Link>.</>}
           {readOnly && <> <Link href={goalsHref} className="font-semibold underline">Definir objetivo</Link></>}</Alert>
       )}
 

@@ -24,15 +24,15 @@ export const myCoach = (db: Db, studentId: string) =>
       join public.profiles p on p.id = cs.coach_id where cs.student_id = $1 and cs.status = 'active' limit 1`, [studentId]);
 
 /**
- * Cria a conta de um aluno com palavra-passe temporária (o aluno é obrigado a mudá-la no primeiro login).
+ * Cria a conta de um atleta com palavra-passe temporária (o atleta é obrigado a mudá-la no primeiro login).
  * Corre com privilégios de servidor porque cria um utilizador; só é chamado depois de confirmar que o autor é coach.
  * O consentimento é atestado pelo coach (fica registado em consent_at).
  */
 export async function createStudentAccount(admin: Db, coach: Actor, i: { fullName: string; email: string }): Promise<{ studentId: string; tempPassword: string }> {
-  if (coach.role !== 'coach') throw bad('Apenas coaches podem criar contas de alunos.', '42501');
+  if (coach.role !== 'coach') throw bad('Apenas coaches podem criar contas de atletas.', '42501');
   const email = i.email.trim().toLowerCase();
   if (!EMAIL_RE.test(email)) throw bad('Email inválido.');
-  if (await admin.one('select 1 from auth.users where lower(email) = $1', [email])) throw bad('Já existe uma conta com este email. Convida o aluno por email em vez de criar a conta.', '23505');
+  if (await admin.one('select 1 from auth.users where lower(email) = $1', [email])) throw bad('Já existe uma conta com este email. Convida o atleta por email em vez de criar a conta.', '23505');
   const tempPassword = generateTempPassword();
   const hash = await hashPassword(tempPassword);
   const u = await admin.one<{ id: string }>(

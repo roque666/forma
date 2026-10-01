@@ -18,7 +18,7 @@ export async function makeUser(role: 'student' | 'coach', name = uniq(role)): Pr
   return { id, role, email, name };
 }
 
-/** Liga um aluno a um coach (aceite pelo próprio aluno, como na app). */
+/** Liga um atleta a um coach (aceite pelo próprio atleta, como na app). */
 export async function link(coach: TestUser, student: TestUser): Promise<void> {
   const linkId = await withUser(coach.id, async (db) => (await db.one<{ id: string }>('select public.coach_invite_student($1) as id', [student.email]))!.id);
   await withUser(student.id, (db) => db.query('select public.accept_coach_link($1)', [linkId]));

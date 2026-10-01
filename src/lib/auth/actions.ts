@@ -1,6 +1,6 @@
 'use server';
 
-import { headers } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import { z } from 'zod';
@@ -12,7 +12,7 @@ import {
 } from '../validation/auth';
 import { hashPassword, verifyPassword } from './password';
 import {
-  clientIpFrom, createSession, destroySession, getSessionUser, hashToken, requireUser, revokeUserSessions,
+  VIEW_MODE_COOKIE, clientIpFrom, createSession, destroySession, getSessionUser, hashToken, requireUser, revokeUserSessions,
 } from './session';
 
 export type FormState = ActionResult<undefined> | null;
@@ -232,4 +232,17 @@ export async function deleteAccountAction(_prev: FormState, fd: FormData): Promi
 
 export async function currentUserOrNull() {
   return getSessionUser();
+}
+
+/** Só para contas de coach: alterna entre o modo coach e "O meu treino" (a app de atleta, com os dados do próprio coach). */
+export async function setViewModeAction(fd: FormData): Promise<void> {
+  const user = await requireUser();
+  if (user.realRole !== 'coach') redirect('/dashboard');
+  const jar = await cookies();
+  if (fd.get('mode') === 'personal') {
+    jar.set(VIEW_MODE_COOKIE, 'personal', { httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production', path: '/', maxAge: 30 * 86_400 });
+  } else {
+    jar.delete(VIEW_MODE_COOKIE);
+  }
+  redirect('/dashboard');
 }

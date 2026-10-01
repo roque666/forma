@@ -22,7 +22,7 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
   const hasMore = items.length > PAGE;
   return (
     <>
-      <PageHeader title="Histórico" subtitle={user.role === 'coach' ? 'Treinos recentes dos teus alunos' : 'Todos os treinos concluídos'}
+      <PageHeader title="Histórico" subtitle={user.role === 'coach' ? 'Treinos recentes dos teus atletas' : 'Todos os treinos concluídos'}
         actions={user.role === 'student' ? <LinkButton href="/history/compare" variant="outline">Comparar treinos</LinkButton> : undefined} />
       <HistoryList items={items.slice(0, PAGE)} tz={user.timezone} hrefFor={(id) => `/session/${id}`} emptyAction={user.role === 'student'} />
       <div className="mt-4 flex justify-between text-sm font-medium">

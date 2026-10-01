@@ -95,22 +95,22 @@ async function CoachView({ user }: { user: SessionUser }) {
       `select p.id, p.name, p.is_active as "isActive", p.is_template as "isTemplate", p.archived_at is not null as archived, p.student_id as "studentId", st.full_name as "studentName",
               (select count(*) from public.workout_days d where d.plan_id = p.id) as "daysCount", (select count(*) from public.plan_exercises pe where pe.plan_id = p.id) as "exercisesCount"
          from public.workout_plans p join public.profiles st on st.id = p.student_id
-        where not p.is_template and p.archived_at is null order by st.full_name, p.is_active desc, p.updated_at desc`),
+        where not p.is_template and p.archived_at is null and p.student_id <> $1 order by st.full_name, p.is_active desc, p.updated_at desc`, [user.id]),
   }));
   return (
     <>
-      <PageHeader title="Treinos" subtitle="Modelos reutilizáveis e planos dos teus alunos" actions={<>
+      <PageHeader title="Treinos" subtitle="Modelos reutilizáveis e planos dos teus atletas" actions={<>
         <LinkButton href="/exercises" variant="outline"><Library className="h-4 w-4" /> Exercícios</LinkButton>
         <LinkButton href="/workouts/new"><Plus className="h-4 w-4" /> Novo plano</LinkButton>
       </>} />
       <section className="mb-6">
         <CardTitle>Modelos</CardTitle>
-        {templates.length === 0 ? <EmptyState icon={<Dumbbell className="h-8 w-8" />} title="Sem modelos" description="Cria um modelo (ex.: “Full body iniciante”) e atribui-o a vários alunos." action={<LinkButton href="/workouts/new?template=1" variant="outline">Criar modelo</LinkButton>} />
+        {templates.length === 0 ? <EmptyState icon={<Dumbbell className="h-8 w-8" />} title="Sem modelos" description="Cria um modelo (ex.: “Full body iniciante”) e atribui-o a vários atletas." action={<LinkButton href="/workouts/new?template=1" variant="outline">Criar modelo</LinkButton>} />
           : <div className="grid gap-3 sm:grid-cols-2">{templates.map((p) => <PlanRow key={p.id} p={p} />)}</div>}
       </section>
       <section>
-        <CardTitle>Planos dos alunos</CardTitle>
-        {studentPlans.length === 0 ? <EmptyState title="Ainda não há planos de alunos" description="Adiciona um aluno e cria-lhe um plano." action={<LinkButton href="/students" variant="outline">Ver alunos</LinkButton>} />
+        <CardTitle>Planos dos atletas</CardTitle>
+        {studentPlans.length === 0 ? <EmptyState title="Ainda não há planos de atletas" description="Adiciona um atleta e cria-lhe um plano." action={<LinkButton href="/students" variant="outline">Ver atletas</LinkButton>} />
           : <div className="grid gap-3 sm:grid-cols-2">{studentPlans.map((p) => (
             <LinkCard key={p.id} href={`/workouts/${p.id}`} className="flex items-center justify-between gap-3">
               <div className="min-w-0"><p className="truncate font-semibold">{p.name}</p><p className="truncate text-xs text-muted">{p.studentName} · {p.daysCount} {p.daysCount === 1 ? 'dia' : 'dias'} · {p.exercisesCount} {p.exercisesCount === 1 ? 'exercício' : 'exercícios'}</p></div>

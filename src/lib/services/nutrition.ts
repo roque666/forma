@@ -43,10 +43,10 @@ export function computeGoal(i: GoalInput, today: string): NutritionResult {
   });
 }
 
-/** Cria uma nova meta (o histórico é imutável). O aluno guarda também o perfil; o coach só cria a meta. */
+/** Cria uma nova meta (o histórico é imutável). O atleta guarda também o perfil; o coach só cria a meta. */
 export async function createGoal(db: Db, actor: Actor, i: GoalInput, today: string): Promise<{ studentId: string; result: NutritionResult }> {
   const studentId = actor.role === 'coach' ? i.studentId : actor.id;
-  if (!studentId) throw bad('Escolhe o aluno.');
+  if (!studentId) throw bad('Escolhe o atleta.');
   const r = computeGoal(i, today);
   const age = ageFromBirthDate(i.birthDate, new Date(today + 'T12:00:00Z'));
   if (actor.role === 'student') {
@@ -96,7 +96,7 @@ export async function createFood(db: Db, actor: Actor, i: FoodInput): Promise<st
   const r = await db.one<{ id: string }>(
     `insert into public.foods (name, brand, category, kcal_100g, protein_100g, carbs_100g, fat_100g, fiber_100g, density_g_per_ml, source, owner_id)
      values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) returning id`,
-    [i.name, i.brand ?? null, i.category ?? null, i.kcal100g, i.protein100g, i.carbs100g, i.fat100g, i.fiber100g ?? null, i.densityGPerMl ?? null, actor.role === 'coach' ? 'coach' : 'user', actor.id]);
+    [i.name, i.brand ?? null, i.category ?? null, i.kcal100g, i.protein100g, i.carbs100g, i.fat100g, i.fiber100g ?? null, i.densityGPerMl ?? null, (actor.realRole ?? actor.role) === 'coach' ? 'coach' : 'user', actor.id]);
   if (i.servingLabel && i.servingGrams) await db.exec('insert into public.food_servings (food_id, label, grams) values ($1,$2,$3)', [r!.id, i.servingLabel, i.servingGrams]);
   return r!.id;
 }

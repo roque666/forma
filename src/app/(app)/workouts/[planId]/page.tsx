@@ -25,7 +25,7 @@ export default async function PlanPage({ params }: { params: Promise<{ planId: s
   const { plan, exercises, students } = await withUser(user.id, async (db) => ({
     plan: await getPlan(db, planId),
     exercises: await listExercises(db),
-    students: user.role === 'coach' ? await listActiveStudents(db) : [],
+    students: user.realRole === 'coach' ? await listActiveStudents(db) : [],
   }));
   if (!plan) notFound();
   const picker = exercises.map((e) => ({ id: e.id, name: e.name, primaryMuscle: e.primaryMuscle, equipment: e.equipment, source: e.source }));
@@ -104,18 +104,32 @@ export default async function PlanPage({ params }: { params: Promise<{ planId: s
           </Card>
           {plan.isTemplate && user.role === 'coach' && (
             <Card>
-              <CardTitle>Atribuir a aluno</CardTitle>
-              {students.length === 0 ? <p className="text-sm text-muted">Ainda não tens alunos ativos.</p> : (
+              <CardTitle>Atribuir a atleta</CardTitle>
+              {students.length === 0 ? <p className="text-sm text-muted">Ainda não tens atletas ativos.</p> : (
                 <ActionForm action={A.assignTemplateAction}>
                   <input type="hidden" name="templateId" value={plan.id} />
-                  <SelectField label="Aluno" name="studentId" defaultValue="" required>
+                  <SelectField label="Atleta" name="studentId" defaultValue="" required>
                     <option value="" disabled>Escolher…</option>
                     {students.map((s) => <option key={s.id} value={s.id}>{s.fullName}</option>)}
                   </SelectField>
                   <SubmitButton size="md">Atribuir cópia</SubmitButton>
-                  <p className="text-xs text-muted">O aluno recebe uma cópia independente; alterações futuras ao modelo não afetam planos já atribuídos.</p>
+                  <p className="text-xs text-muted">O atleta recebe uma cópia independente; alterações futuras ao modelo não afetam planos já atribuídos.</p>
                 </ActionForm>
               )}
+            </Card>
+          )}
+          {user.realRole === 'coach' && !plan.isTemplate && plan.studentId === user.id && (
+            <Card>
+              <CardTitle>Partilhar este plano</CardTitle>
+              <ActionForm action={A.sharePlanAction}>
+                <input type="hidden" name="planId" value={plan.id} />
+                <SelectField label="Enviar para" name="studentId" defaultValue="">
+                  <option value="">Guardar como modelo (sem atleta)</option>
+                  {students.map((s) => <option key={s.id} value={s.id}>Atleta: {s.fullName}</option>)}
+                </SelectField>
+                <SubmitButton size="md">Partilhar cópia</SubmitButton>
+                <p className="text-xs text-muted">É criada uma cópia independente; o teu plano não muda.</p>
+              </ActionForm>
             </Card>
           )}
           <Card>

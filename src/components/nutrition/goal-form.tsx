@@ -20,7 +20,7 @@ const WARN_PT: Record<WarningCode, string> = {
 
 export interface GoalDefaults { sex?: string; birthDate?: string; heightCm?: number; weightKg?: number; activityLevel?: string; bmrFormula?: string; bodyFatPct?: number | null; goal?: GoalType }
 
-export function GoalForm({ defaults, studentId, today, coachMode }: { defaults: GoalDefaults; studentId?: string; today: string; coachMode?: boolean }) {
+export function GoalForm({ defaults, studentId, today, coachMode, relaxed }: { defaults: GoalDefaults; studentId?: string; today: string; coachMode?: boolean; /** coach a usar a app como atleta: sem avisos de segurança */ relaxed?: boolean }) {
   const [goal, setGoal] = useState<GoalType>(defaults.goal ?? 'maintenance');
   const [f, setF] = useState({
     sex: defaults.sex ?? '', birthDate: defaults.birthDate ?? '', heightCm: defaults.heightCm?.toString() ?? '', weightKg: defaults.weightKg?.toString() ?? '',
@@ -88,8 +88,8 @@ export function GoalForm({ defaults, studentId, today, coachMode }: { defaults: 
             <TextField label="Nota (opcional)" name="note" maxLength={300} placeholder="Ex.: início de bulk" />
           </div>
         </details>
-        <SubmitButton size="lg" disabled={!calc?.r} pendingLabel="A guardar…">{coachMode ? 'Definir objetivo do aluno' : 'Guardar objetivo'}</SubmitButton>
-        <p className="text-xs text-muted">{NUTRITION_DISCLAIMER_PT}</p>
+        <SubmitButton size="lg" disabled={!calc?.r} pendingLabel="A guardar…">{coachMode ? 'Definir objetivo do atleta' : 'Guardar objetivo'}</SubmitButton>
+        {!relaxed && <p className="text-xs text-muted">{NUTRITION_DISCLAIMER_PT}</p>}
       </ActionForm>
 
       <aside className="space-y-3 lg:sticky lg:top-4 lg:self-start" aria-live="polite">
@@ -106,7 +106,7 @@ export function GoalForm({ defaults, studentId, today, coachMode }: { defaults: 
                 <div><p className="font-bold text-carbs tabular-nums">{r.carbsG} g</p><p className="text-[11px] text-muted">Hidr. {r.macroPct.carbs}%</p></div>
                 <div><p className="font-bold text-fat tabular-nums">{r.fatG} g</p><p className="text-[11px] text-muted">Gord. {r.macroPct.fat}%</p></div>
               </div>
-              {r.warnings.map((w) => <Alert key={w.code} tone={w.severity === 'warning' ? 'warn' : 'info'}>{WARN_PT[w.code]}</Alert>)}
+              {!relaxed && r.warnings.map((w) => <Alert key={w.code} tone={w.severity === 'warning' ? 'warn' : 'info'}>{WARN_PT[w.code]}</Alert>)}
             </div>); })()}
         </Card>
       </aside>

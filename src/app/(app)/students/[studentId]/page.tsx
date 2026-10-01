@@ -30,7 +30,7 @@ import { cn } from '@/components/ui/cn';
 import { fmtNum, GOAL_LABELS } from '@/lib/labels';
 import { getNutritionProfile } from '@/lib/services/nutrition';
 
-export const metadata = { title: 'Aluno' };
+export const metadata = { title: 'Atleta' };
 
 const TABS = [['summary', 'Resumo'], ['workouts', 'Treinos'], ['progress', 'Progressão'], ['nutrition', 'Nutrição'], ['weight', 'Peso'], ['history', 'Histórico']] as const;
 
@@ -54,10 +54,10 @@ export default async function StudentPage({ params, searchParams }: { params: Pr
 
   return (
     <>
-      <PageHeader title={base.student.fullName} back={{ href: '/students', label: 'Alunos' }}
+      <PageHeader title={base.student.fullName} back={{ href: '/students', label: 'Atletas' }}
         subtitle={<span className="inline-flex flex-wrap items-center gap-2"><Badge tone={tone[follow.followUp.status]}>{FOLLOWUP_LABELS_PT[follow.followUp.status]}</Badge>{base.overview.inviteEmail}</span>}
         actions={<form action={endLinkAction}><input type="hidden" name="id" value={base.overview.linkId} /><ConfirmSubmit variant="ghost" confirmLabel="Terminar acompanhamento?">Terminar vínculo</ConfirmSubmit></form>} />
-      <nav className="-mx-1 mb-5 flex gap-1 overflow-x-auto px-1 pb-1" aria-label="Secções do aluno">
+      <nav className="-mx-1 mb-5 flex gap-1 overflow-x-auto px-1 pb-1" aria-label="Secções do atleta">
         {TABS.map(([k, label]) => <Link key={k} href={href(k)} aria-current={tab === k ? 'page' : undefined} className={cn('shrink-0 rounded-full px-4 py-2 text-sm font-semibold', tab === k ? 'bg-accent text-accent-fg' : 'bg-surface2 text-muted hover:text-fg')}>{label}</Link>)}
       </nav>
       {tab === 'summary' && <Summary viewerId={user.id} studentId={studentId} tz={user.timezone} today={today} follow={follow} />}
@@ -116,7 +116,7 @@ async function Workouts({ viewerId, studentId, name }: { viewerId: string; stude
         <LinkButton href={`/workouts/new?student=${studentId}`}>Novo plano para {name.split(' ')[0]}</LinkButton>
         {d.templates.length > 0 && <div className="min-w-64 flex-1"><AssignTemplateForm studentId={studentId} templates={d.templates} /></div>}
       </div>
-      {d.plans.length === 0 ? <EmptyState title="Este aluno ainda não tem planos" /> : <div className="grid gap-3 sm:grid-cols-2">{d.plans.map((p) => (
+      {d.plans.length === 0 ? <EmptyState title="Este atleta ainda não tem planos" /> : <div className="grid gap-3 sm:grid-cols-2">{d.plans.map((p) => (
         <LinkCard key={p.id} href={`/workouts/${p.id}`} className="flex items-center justify-between gap-2"><div className="min-w-0"><p className="truncate font-semibold">{p.name}</p><p className="text-xs text-muted">{p.daysCount} {p.daysCount === 1 ? 'dia' : 'dias'} · {p.exercisesCount} {p.exercisesCount === 1 ? 'exercício' : 'exercícios'}{p.createdByCoach ? ' · criado pelo coach' : ''}</p></div>
           <span className="flex gap-1">{p.isActive && <Badge tone="accent">Atual</Badge>}{p.archived && <Badge>Arquivado</Badge>}</span></LinkCard>))}</div>}
     </div>
@@ -139,13 +139,13 @@ async function NutritionTab({ viewerId, studentId, tz, sp, today, href }: { view
   if (view === 'goal') {
     const d = await withUser(viewerId, async (db) => ({ profile: await getNutritionProfile(db, studentId), goal: await getCurrentGoal(db, studentId, today), w: (await listWeights(db, studentId)).slice(-1) }));
     return (<div className="space-y-4"><div className="flex gap-1.5">{sub}</div>
-      {!d.profile && <p className="rounded-xl bg-surface2 px-3 py-2 text-sm">O aluno ainda não preencheu o perfil nutricional — completa os dados abaixo para calcular o objetivo.</p>}
+      {!d.profile && <p className="rounded-xl bg-surface2 px-3 py-2 text-sm">O atleta ainda não preencheu o perfil nutricional — completa os dados abaixo para calcular o objetivo.</p>}
       <GoalForm coachMode studentId={studentId} today={today} defaults={{ sex: d.profile?.sex ?? d.goal?.sex, birthDate: d.profile?.birthDate, heightCm: d.profile?.heightCm ?? d.goal?.heightCm, activityLevel: d.profile?.activityLevel ?? d.goal?.activityLevel, bmrFormula: d.profile?.bmrFormula, weightKg: d.w[0]?.weightKg ?? d.goal?.weightKg, bodyFatPct: d.goal?.bodyFatPct, goal: d.goal?.goalType }} /></div>);
   }
   if (view === 'stats') {
     const range = sp.range === 'month' ? 'month' : 'week';
     const ref = isValidYmd(sp.ref) ? sp.ref : today;
-    return (<div className="space-y-4"><div className="flex gap-1.5">{sub}</div><NutritionStats viewerId={viewerId} studentId={studentId} tz={tz} range={range} ref={ref} href={(r, d) => href('nutrition', `&view=stats&range=${r}&ref=${d}`)} /></div>);
+    return (<div className="space-y-4"><div className="flex gap-1.5">{sub}</div><NutritionStats viewerId={viewerId} studentId={studentId} tz={tz} range={range} refDate={ref} href={(r, d) => href('nutrition', `&view=stats&range=${r}&ref=${d}`)} /></div>);
   }
   const date = isValidYmd(sp.date) ? sp.date : today;
   return (<div className="space-y-4"><div className="flex gap-1.5">{sub}</div>

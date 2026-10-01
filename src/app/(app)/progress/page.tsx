@@ -16,8 +16,8 @@ export default async function ProgressPage() {
     const rows = (await withUser(user.id, (db) => listStudentOverview(db))).filter((r) => r.studentId && r.linkStatus === 'active');
     return (
       <>
-        <PageHeader title="Progressão" subtitle="Escolhe um aluno para ver a evolução" />
-        {rows.length === 0 ? <EmptyState title="Ainda sem alunos" description="Adiciona alunos para acompanhar a progressão." action={<Link href="/students" className="font-semibold text-accent-text">Ir para alunos</Link>} /> : (
+        <PageHeader title="Progressão" subtitle="Escolhe um atleta para ver a evolução" />
+        {rows.length === 0 ? <EmptyState title="Ainda sem atletas" description="Adiciona atletas para acompanhar a progressão." action={<Link href="/students" className="font-semibold text-accent-text">Ir para atletas</Link>} /> : (
           <div className="grid gap-3 sm:grid-cols-2">{rows.map((r) => (
             <LinkCard key={r.linkId} href={`/students/${r.studentId}?tab=progress`} className="flex items-center gap-3"><Avatar name={r.fullName ?? '?'} src={r.avatarUrl} /><span className="font-semibold">{r.fullName}</span></LinkCard>))}</div>)}
       </>

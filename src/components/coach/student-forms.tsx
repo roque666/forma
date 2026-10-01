@@ -12,9 +12,9 @@ import type { FollowUpThresholds } from '@/lib/coach/followup';
 export function InviteForm() {
   return (
     <ActionForm action={inviteStudentAction} resetOnSuccess>
-      <TextField label="Email do aluno" name="email" type="email" autoComplete="off" required placeholder="aluno@email.com" />
+      <TextField label="Email do atleta" name="email" type="email" autoComplete="off" required placeholder="atleta@email.com" />
       <SubmitButton size="md" pendingLabel="A enviar…">Enviar convite</SubmitButton>
-      <p className="text-xs text-muted">O aluno vê o convite no perfil e só depois de aceitar é que partilhas dados. Se ainda não tiver conta, pode criá-la com este email.</p>
+      <p className="text-xs text-muted">O atleta vê o convite no perfil e só depois de aceitar é que partilhas dados. Se ainda não tiver conta, pode criá-la com este email.</p>
     </ActionForm>
   );
 }
@@ -29,11 +29,11 @@ export function CreateStudentForm() {
   if (created)
     return (
       <div className="space-y-3">
-        <Alert tone="success">Conta criada para <strong>{created.email}</strong>. Entrega esta palavra-passe temporária ao aluno — só é mostrada agora.</Alert>
+        <Alert tone="success">Conta criada para <strong>{created.email}</strong>. Entrega esta palavra-passe temporária ao atleta — só é mostrada agora.</Alert>
         <div className="flex items-center gap-2"><code className="flex-1 rounded-xl bg-surface2 px-4 py-3 text-lg font-bold tracking-wider" data-testid="temp-password">{created.tempPassword}</code>
           <Button type="button" variant="outline" size="icon" aria-label="Copiar" onClick={() => { navigator.clipboard?.writeText(created.tempPassword); setCopied(true); }}><Copy className="h-4 w-4" /></Button></div>
         {copied && <p className="text-xs text-ok">Copiado.</p>}
-        <p className="text-xs text-muted">No primeiro login o aluno tem de escolher uma palavra-passe nova.</p>
+        <p className="text-xs text-muted">No primeiro login o atleta tem de escolher uma palavra-passe nova.</p>
         <a href="/students" className="text-sm font-semibold text-accent-text">Criar outra conta</a>
       </div>
     );
@@ -43,9 +43,9 @@ export function CreateStudentForm() {
       {state && !state.ok && <Alert tone="error">{state.error}</Alert>}
       <label className="block space-y-1.5"><span className="text-sm font-medium">Nome</span><input name="fullName" required maxLength={100} className={inputCls} />{fe.fullName && <span className="text-xs text-danger">{fe.fullName}</span>}</label>
       <label className="block space-y-1.5"><span className="text-sm font-medium">Email</span><input name="email" type="email" required className={inputCls} />{fe.email && <span className="text-xs text-danger">{fe.email}</span>}</label>
-      <label className="flex items-start gap-2 text-sm"><input type="checkbox" name="consent" className="mt-1 h-4 w-4" /> <span>Confirmo que o aluno autorizou a partilha dos seus dados de treino, nutrição e peso comigo.</span></label>
+      <label className="flex items-start gap-2 text-sm"><input type="checkbox" name="consent" className="mt-1 h-4 w-4" /> <span>Confirmo que o atleta autorizou a partilha dos seus dados de treino, nutrição e peso comigo.</span></label>
       {fe.consent && <p className="text-xs text-danger">{fe.consent}</p>}
-      <SubmitButton size="md" pendingLabel="A criar…">Criar conta do aluno</SubmitButton>
+      <SubmitButton size="md" pendingLabel="A criar…">Criar conta do atleta</SubmitButton>
     </form>
   );
 }

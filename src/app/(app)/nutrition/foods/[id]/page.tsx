@@ -18,12 +18,15 @@ export default async function FoodPage({ params }: { params: Promise<{ id: strin
   const food = await withUser(user.id, (db) => getFood(db, id));
   if (!food) notFound();
   const mine = food.ownerId === user.id;
+  const isBase = food.ownerId === null;
+  const canEdit = mine || (isBase && user.realRole === 'coach'); // coaches podem corrigir a base
   return (
     <>
       <PageHeader title={food.name} back={{ href: '/nutrition/foods', label: 'Alimentos' }} />
       <Card className="max-w-2xl space-y-4">
-        {!mine && <Alert>Alimento da base partilhada — não pode ser editado. Cria um alimento próprio se precisares de outros valores.</Alert>}
-        <FoodForm action={updateFoodAction.bind(null, food.id)} food={food} readOnly={!mine} />
+        {!canEdit && <Alert>Alimento da base partilhada — não pode ser editado. Cria um alimento próprio se precisares de outros valores.</Alert>}
+        {isBase && canEdit && <Alert tone="warn">Alimento da base partilhada: as alterações aplicam-se a todos os utilizadores.</Alert>}
+        <FoodForm action={updateFoodAction.bind(null, food.id)} food={food} readOnly={!canEdit} />
         {mine && <form action={deleteFoodAction}><input type="hidden" name="id" value={food.id} /><ConfirmSubmit>Apagar alimento</ConfirmSubmit><p className="mt-2 text-xs text-muted">Os registos já feitos no diário mantêm os valores.</p></form>}
       </Card>
     </>

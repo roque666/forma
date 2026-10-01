@@ -103,7 +103,22 @@ export async function assignTemplateAction(_p: FormState, fd: FormData): Promise
     await withUser(user.id, (db) => t.assignTemplate(db, p.data.templateId, p.data.studentId));
     revalidatePath('/workouts');
     revalidatePath(`/students/${p.data.studentId}`, 'layout');
-    return ok(undefined, 'Plano atribuído ao aluno.');
+    return ok(undefined, 'Plano atribuído ao atleta.');
+  });
+}
+
+/** Coach (mesmo em "O meu treino"): transforma um plano seu em modelo, ou dá uma cópia a um atleta ativo. */
+export async function sharePlanAction(_p: FormState, fd: FormData): Promise<FormState> {
+  return run(async () => {
+    const user = await requireUser();
+    if (user.realRole !== 'coach') return fail('Só coaches podem partilhar planos.');
+    const p = parse(z.object({ planId: uuid, studentId: z.preprocess((v) => (v === '' ? undefined : v), uuid.optional()) }), formToObject(fd));
+    if ('error' in p) return p.error;
+    const { planId, studentId } = p.data;
+    await withUser(user.id, (db) => t.duplicatePlan(db, planId, studentId ? { targetStudentId: studentId } : { asTemplate: true }));
+    revalidatePath('/workouts');
+    if (studentId) revalidatePath(`/students/${studentId}`, 'layout');
+    return ok(undefined, studentId ? 'Cópia enviada ao atleta (aparece nos planos dele).' : 'Guardado como modelo. Encontras em Treinos, no modo Coach.');
   });
 }
 

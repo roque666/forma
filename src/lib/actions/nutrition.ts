@@ -161,7 +161,7 @@ export async function setWeightGoalAction(_p: FormState, fd: FormData): Promise<
     const p = parse(weightGoalSchema.extend({ studentId: uuid.optional() }), { ...raw, studentId: raw.studentId || undefined });
     if ('error' in p) return p.error;
     const studentId = user.role === 'coach' ? p.data.studentId : user.id;
-    if (!studentId) return fail('Escolhe o aluno.');
+    if (!studentId) return fail('Escolhe o atleta.');
     await withUser(user.id, (db) => n.setWeightGoal(db, user, studentId, p.data));
     revalidatePath('/weight');
     revalidatePath(`/students/${studentId}`, 'layout');

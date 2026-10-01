@@ -30,7 +30,7 @@ export async function WeightView({ viewerId, studentId, tz, readOnly, coachGoalF
   return (
     <div className="space-y-4">
       {!readOnly && <Card><CardTitle>Registar peso</CardTitle><LogWeightForm today={today} lastKg={last?.weightKg} /></Card>}
-      {entries.length === 0 ? <EmptyState icon={<Scale className="h-8 w-8" />} title="Ainda sem registos de peso" description={readOnly ? 'O aluno ainda não registou o peso.' : 'Regista o teu peso para veres a evolução e a média semanal.'} /> : (
+      {entries.length === 0 ? <EmptyState icon={<Scale className="h-8 w-8" />} title="Ainda sem registos de peso" description={readOnly ? 'O atleta ainda não registou o peso.' : 'Regista o teu peso para veres a evolução e a média semanal.'} /> : (
         <>
           <Card className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             <Stat label="Peso atual" value={fmtNum(last.weightKg, 1)} unit="kg" hint={formatDatePt(last.date)} />

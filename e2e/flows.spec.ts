@@ -5,7 +5,7 @@ import { DEMO_PASSWORD, login, logout } from './helpers';
 test.describe.configure({ mode: 'serial' });
 
 const stamp = Date.now();
-const studentEmail = `e2e.aluno.${stamp}@teste.pt`;
+const studentEmail = `e2e.atleta.${stamp}@teste.pt`;
 const studentPass = 'Teste12345678';
 const exName = `Remada E2E ${stamp}`;
 const planName = `Plano E2E ${stamp}`;
@@ -14,12 +14,12 @@ let tempPassword = '';
 
 test('1. criar conta', async ({ page }) => {
   await page.goto('/register');
-  await page.getByLabel('Nome').fill('Aluno E2E');
+  await page.getByLabel('Nome').fill('Atleta E2E');
   await page.getByLabel('Email').fill(studentEmail);
   await page.getByLabel('Palavra-passe').fill(studentPass);
   await page.getByRole('button', { name: 'Criar conta' }).click();
   await expect(page).toHaveURL(/\/dashboard/);
-  await expect(page.getByRole('heading', { name: /Olá, Aluno/ })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /Olá, Atleta/ })).toBeVisible();
 });
 
 test('validações: registo com dados inválidos mostra erros', async ({ page }) => {
@@ -148,31 +148,31 @@ test('12. registar peso', async ({ page }) => {
   await expect(page.getByText('80,5 kg').first()).toBeVisible();
 });
 
-test('13. coach cria aluno (conta com palavra-passe temporária)', async ({ page }) => {
+test('13. coach cria atleta (conta com palavra-passe temporária)', async ({ page }) => {
   await login(page, 'coach@demo.pt', DEMO_PASSWORD);
   await page.goto('/students');
   await expect(page.getByTestId('student-card').first()).toBeVisible();
-  await page.getByLabel('Nome', { exact: true }).fill('Aluno Novo E2E');
-  await page.locator('form:has-text("Criar conta do aluno") input[name="email"]').fill(newStudentEmail);
-  await page.getByRole('button', { name: 'Criar conta do aluno' }).click();
-  await expect(page.getByText('Confirma que o aluno autorizou')).toBeVisible(); // validação
+  await page.getByLabel('Nome', { exact: true }).fill('Atleta Novo E2E');
+  await page.locator('form:has-text("Criar conta do atleta") input[name="email"]').fill(newStudentEmail);
+  await page.getByRole('button', { name: 'Criar conta do atleta' }).click();
+  await expect(page.getByText('Confirma que o atleta autorizou')).toBeVisible(); // validação
   await page.getByRole('checkbox').check();
-  await page.getByRole('button', { name: 'Criar conta do aluno' }).click();
+  await page.getByRole('button', { name: 'Criar conta do atleta' }).click();
   await expect(page.getByTestId('temp-password')).toBeVisible();
   tempPassword = (await page.getByTestId('temp-password').textContent())!.trim();
   expect(tempPassword.length).toBeGreaterThan(10);
 });
 
-test('14. coach atribui treino ao aluno; aluno vê o plano após mudar a palavra-passe', async ({ page }) => {
+test('14. coach atribui treino ao atleta; atleta vê o plano após mudar a palavra-passe', async ({ page }) => {
   await login(page, 'coach@demo.pt', DEMO_PASSWORD);
   await page.goto('/students');
-  await page.getByRole('link', { name: /Aluno Novo E2E/ }).click();
-  await page.getByRole('navigation', { name: 'Secções do aluno' }).getByRole('link', { name: 'Treinos' }).click();
+  await page.getByRole('link', { name: /Atleta Novo E2E/ }).click();
+  await page.getByRole('navigation', { name: 'Secções do atleta' }).getByRole('link', { name: 'Treinos' }).click();
   await page.getByLabel('Atribuir modelo').selectOption({ label: 'Full body iniciante' });
   await page.getByRole('button', { name: 'Atribuir' }).click();
-  await expect(page.getByText('Plano atribuído ao aluno.')).toBeVisible();
+  await expect(page.getByText('Plano atribuído ao atleta.')).toBeVisible();
   await logout(page);
-  // o aluno entra com a temporária e é obrigado a mudar
+  // o atleta entra com a temporária e é obrigado a mudar
   await login(page, newStudentEmail, tempPassword);
   await expect(page).toHaveURL(/\/change-password/);
   await page.getByLabel('Palavra-passe atual (temporária)').fill(tempPassword);
@@ -184,11 +184,11 @@ test('14. coach atribui treino ao aluno; aluno vê o plano após mudar a palavra
   await expect(page.getByText('Full body iniciante').first()).toBeVisible();
 });
 
-test('15. coach consulta o progresso do aluno', async ({ page }) => {
+test('15. coach consulta o progresso do atleta', async ({ page }) => {
   await login(page, 'coach@demo.pt', DEMO_PASSWORD);
   await page.goto('/students');
   await page.getByRole('link', { name: /Ana Ribeiro/ }).click();
-  await page.getByRole('navigation', { name: 'Secções do aluno' }).getByRole('link', { name: 'Progressão' }).click();
+  await page.getByRole('navigation', { name: 'Secções do atleta' }).getByRole('link', { name: 'Progressão' }).click();
   await expect(page.getByText('Supino reto com barra').first()).toBeVisible();
   await page.getByRole('link', { name: /Supino reto com barra/ }).first().click();
   await expect(page.getByText('1RM estimado').first()).toBeVisible();
@@ -196,14 +196,14 @@ test('15. coach consulta o progresso do aluno', async ({ page }) => {
   // nutrição e peso (só leitura)
   await page.goBack();
   await page.goBack();
-  await page.getByRole('navigation', { name: 'Secções do aluno' }).getByRole('link', { name: 'Nutrição' }).click();
+  await page.getByRole('navigation', { name: 'Secções do atleta' }).getByRole('link', { name: 'Nutrição' }).click();
   await expect(page.getByText(/kcal/).first()).toBeVisible();
 });
 
 test('dashboard do coach mostra alertas e adesão', async ({ page }) => {
   await login(page, 'coach@demo.pt', DEMO_PASSWORD);
   await page.goto('/dashboard');
-  await expect(page.getByText('Alunos ativos')).toBeVisible();
+  await expect(page.getByText('Atletas ativos')).toBeVisible();
   await expect(page.getByText('Adesão aos planos')).toBeVisible();
   await expect(page.getByText('Alertas').first()).toBeVisible();
 });

@@ -1,10 +1,14 @@
 import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
+import { PwaRegister } from '@/components/pwa-register';
 import { ToastProvider } from '@/components/ui/toast';
 import './globals.css';
 
 export const metadata: Metadata = {
   title: { default: 'Forma — treino e nutrição', template: '%s · Forma' },
+  manifest: '/manifest.webmanifest',
+  appleWebApp: { capable: true, title: 'Forma', statusBarStyle: 'black-translucent' },
+  icons: { icon: '/icon-192.png', apple: '/apple-touch-icon.png' },
   description: 'Planos de treino, registo de séries, nutrição e acompanhamento com o teu coach.',
 };
 
@@ -29,6 +33,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       </head>
       <body>
         <ToastProvider>{children}</ToastProvider>
+        <PwaRegister />
       </body>
     </html>
   );

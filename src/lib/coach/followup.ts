@@ -1,5 +1,5 @@
 /**
- * Estado de acompanhamento de um aluno (página "Meus Alunos").
+ * Estado de acompanhamento de um atleta (página "Meus Atletas").
  * Calculado na aplicação a partir de coach_students_overview + coach_settings,
  * para os limites serem configuráveis por coach sem alterar a base de dados.
  */
@@ -39,7 +39,7 @@ export interface StudentActivity {
   /** YYYY-MM-DD da última pesagem. */
   lastWeighIn: string | null;
   hasActivePlan: boolean;
-  /** ISO timestamp do início do vínculo (para alunos novos sem atividade ainda). */
+  /** ISO timestamp do início do vínculo (para atletas novos sem atividade ainda). */
   linkedAt: string;
 }
 
@@ -90,7 +90,7 @@ export function computeFollowUp(
   const inactive = activity.length === 0 ? linkedDays > t.inactiveDays : Math.min(...activity) > t.inactiveDays;
   if (inactive) return { status: 'inactive', reasons: [], daysSince };
 
-  // Alunos acabados de associar têm um período de graça para não gerar alertas falsos.
+  // Atletas acabados de associar têm um período de graça para não gerar alertas falsos.
   const grace = linkedDays <= 3;
   const reasons: FollowUpReason[] = [];
   if (!a.hasActivePlan) reasons.push('no_active_plan');
@@ -129,7 +129,7 @@ export const FOLLOWUP_REASON_LABELS_PT: Record<FollowUpReason, string> = {
 
 const PRIORITY: Record<FollowUpStatus, number> = { attention: 0, inactive: 1, on_track: 2, pending: 3 };
 
-/** Ordena "Meus Alunos": primeiro quem precisa de atenção, depois inativos, em dia e pendentes. */
+/** Ordena "Meus Atletas": primeiro quem precisa de atenção, depois inativos, em dia e pendentes. */
 export function sortByAttention<T extends { followUp: FollowUpResult; fullName?: string | null }>(rows: T[]): T[] {
   return [...rows].sort(
     (x, y) =>

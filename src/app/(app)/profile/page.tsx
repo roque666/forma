@@ -29,7 +29,7 @@ export default async function ProfilePage() {
       <div className="grid max-w-4xl gap-4 lg:grid-cols-2">
         <Card className="lg:col-span-2">
           <div className="flex items-center gap-4"><Avatar name={user.fullName} src={user.avatarUrl} size={56} />
-            <div className="min-w-0 flex-1"><p className="truncate text-lg font-bold">{user.fullName}</p><p className="truncate text-sm text-muted">{user.email}</p><Badge className="mt-1" tone="accent">{user.role === 'coach' ? 'Coach' : 'Aluno'}</Badge></div>
+            <div className="min-w-0 flex-1"><p className="truncate text-lg font-bold">{user.fullName}</p><p className="truncate text-sm text-muted">{user.email}</p><Badge className="mt-1" tone="accent">{user.role === 'coach' ? 'Coach' : 'Atleta'}</Badge></div>
             <ThemeToggle /></div>
         </Card>
         <Card><CardTitle>Dados pessoais</CardTitle>

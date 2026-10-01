@@ -15,7 +15,7 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
   return (
     <>
       <PageHeader title="Estatísticas" back={{ href: '/nutrition', label: 'Nutrição' }} subtitle="Médias e adesão ao objetivo" />
-      <NutritionStats viewerId={user.id} studentId={user.id} tz={user.timezone} range={range} ref={ref} href={(r, d) => `/nutrition/stats?range=${r}&ref=${d}`} />
+      <NutritionStats viewerId={user.id} studentId={user.id} tz={user.timezone} range={range} refDate={ref} href={(r, d) => `/nutrition/stats?range=${r}&ref=${d}`} />
     </>
   );
 }

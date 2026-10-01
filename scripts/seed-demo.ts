@@ -1,5 +1,5 @@
 /**
- * Dados de demonstração (SÓ desenvolvimento/teste). Cria um coach e alunos com histórico realista.
+ * Dados de demonstração (SÓ desenvolvimento/teste). Cria um coach e atletas com histórico realista.
  * Recusa correr em produção. Idempotente: apaga e recria os utilizadores @demo.pt.
  *
  *   coach@demo.pt · ana@demo.pt · rui@demo.pt · sofia@demo.pt · tiago@demo.pt  — palavra-passe: Demo12345678
@@ -147,7 +147,7 @@ async function main() {
 
     await c.query('commit');
     const [{ n }] = await q<{ n: number }>(`select count(*)::int as n from public.pr_events`);
-    console.log(`Demo criado: 1 coach, 4 alunos, ${sessions} sessões, ${n} eventos de PR. Palavra-passe: ${DEMO_PASSWORD}`);
+    console.log(`Demo criado: 1 coach, 4 atletas, ${sessions} sessões, ${n} eventos de PR. Palavra-passe: ${DEMO_PASSWORD}`);
   } catch (e) {
     await c.query('rollback').catch(() => {});
     throw e;
