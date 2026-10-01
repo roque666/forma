@@ -143,5 +143,10 @@ export async function getScheduleContext(db: Db, studentId: string, today: strin
   const done = await db.query<{ dayId: string }>(
     `select distinct plan_day_id as "dayId" from public.workout_sessions
       where student_id = $1 and status = 'completed' and plan_day_id is not null and (started_at at time zone $3)::date = $2::date`, [studentId, today, tz]);
-  return { lastCompletedDayId: last?.dayId ?? null, completedTodayDayIds: done.map((d) => d.dayId) };
+  // último dia concluído em cada plano (para a rotação de cada plano)
+  const perPlan = await db.query<{ planId: string; dayId: string }>(
+    `select distinct on (d.plan_id) d.plan_id as "planId", s.plan_day_id as "dayId"
+       from public.workout_sessions s join public.workout_days d on d.id = s.plan_day_id
+      where s.student_id = $1 and s.status = 'completed' order by d.plan_id, s.started_at desc`, [studentId]);
+  return { lastCompletedDayId: last?.dayId ?? null, completedTodayDayIds: done.map((d) => d.dayId), lastByPlan: Object.fromEntries(perPlan.map((r) => [r.planId, r.dayId])) as Record<string, string> };
 }

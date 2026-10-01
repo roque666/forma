@@ -70,3 +70,47 @@ describe('schedule', () => {
     expect(expectedSessionsPerWeek([{ weekdays: [] }, { weekdays: [] }])).toBe(2);
   });
 });
+
+import { expectedForWeek, itemsOn, nextScheduled, planOnDate, resolveToday, recurrenceLabel, type CalPlan, type Recurrence } from './calendar';
+
+describe('calendário de planos', () => {
+  const weekly = (anchor: string | null = '2026-09-28', every = 1): Recurrence => ({ kind: 'weekly', every, weekOfMonth: null, anchor, endsOn: null });
+  const ppl: CalPlan = { id: 'ppl', name: 'PPL', recurrence: weekly('2026-09-28', 2), days: [
+    { id: 'push', name: 'Push', position: 0, weekdays: [1] }, { id: 'pull', name: 'Pull', position: 1, weekdays: [3] }] };
+  const unc: CalPlan = { id: 'unc', name: 'UNC', recurrence: weekly('2026-10-05', 2), days: [{ id: 'u1', name: 'UNC 1', position: 0, weekdays: [1, 4] }] };
+
+  it('de 2 em 2 semanas alterna entre planos', () => {
+    expect(planOnDate(ppl.recurrence, '2026-09-28')).toBe(true);   // semana 0
+    expect(planOnDate(ppl.recurrence, '2026-10-05')).toBe(false);  // semana 1
+    expect(planOnDate(ppl.recurrence, '2026-10-12')).toBe(true);   // semana 2
+    expect(itemsOn([ppl, unc], '2026-10-05').map((i) => i.day.id)).toEqual(['u1']);
+    expect(itemsOn([ppl, unc], '2026-10-12').map((i) => i.day.id)).toEqual(['push']);
+  });
+  it('antes do início e depois do fim o plano não está em vigor', () => {
+    expect(planOnDate(weekly('2026-10-05'), '2026-09-30')).toBe(false);
+    expect(planOnDate({ ...weekly('2026-09-01'), endsOn: '2026-10-10' }, '2026-10-12')).toBe(false);
+  });
+  it('mensal: n-ésima semana e última semana do mês', () => {
+    const m = (w: number): Recurrence => ({ kind: 'monthly', every: 1, weekOfMonth: w, anchor: '2026-01-01', endsOn: null });
+    expect(planOnDate(m(1), '2026-10-01')).toBe(false); // semana de 28/09 (segunda no mês anterior, dia 28 → 4.ª)
+    expect(planOnDate(m(1), '2026-10-05')).toBe(true);  // segunda-feira dia 5 → 1.ª
+    expect(planOnDate(m(2), '2026-10-12')).toBe(true);
+    expect(planOnDate(m(5), '2026-10-26')).toBe(true);  // última segunda-feira de outubro
+    expect(planOnDate(m(5), '2026-10-19')).toBe(false);
+    expect(recurrenceLabel(m(5))).toContain('última');
+  });
+  it('hoje junta os planos em vigor e o próximo vem do calendário', () => {
+    const r = resolveToday([ppl, unc], '2026-09-28', {});
+    expect(r.entries.map((e) => e.day.id)).toEqual(['push']);
+    expect(r.next?.day.id).toBe('pull');
+    expect(r.next?.date).toBe('2026-09-30');
+    const e = resolveToday([ppl], '2026-09-29', {});
+    expect(e.entries).toHaveLength(0);
+    expect(e.next?.date).toBe('2026-09-30');
+  });
+  it('treinos previstos por semana respeitam a regularidade', () => {
+    expect(expectedForWeek([ppl, unc], '2026-09-28')).toBe(2);
+    expect(expectedForWeek([ppl, unc], '2026-10-05')).toBe(2);
+    expect(nextScheduled([unc], '2026-10-05')?.date).toBe('2026-10-08');
+  });
+});

@@ -4,13 +4,15 @@ import { withUser } from '@/lib/db/pool';
 import { listStudentOverview } from '@/lib/data/coach';
 import { getThresholds, withFollowUp } from '@/lib/services/coach';
 import { FOLLOWUP_REASON_LABELS_PT } from '@/lib/coach/followup';
-import { addDays, isoToLocalDate, relativeDayLabel, todayInTz } from '@/lib/dates';
+import { addDays, isoToLocalDate, relativeDayLabel, startOfWeek, todayInTz } from '@/lib/dates';
 import { Card, CardTitle, LinkCard, PageHeader } from '@/components/ui/card';
 import { Badge, EmptyState, ProgressBar, Stat } from '@/components/ui/feedback';
 import { Avatar } from '@/components/ui/avatar';
 import { LinkButton } from '@/components/ui/button';
 import { fmtNum } from '@/lib/labels';
 import Link from 'next/link';
+
+import { expectedForWeek, type CalPlan, type Recurrence } from '@/lib/training/calendar';
 
 export async function CoachDashboard({ user }: { user: SessionUser }) {
   const today = todayInTz(user.timezone);
@@ -21,9 +23,17 @@ export async function CoachDashboard({ user }: { user: SessionUser }) {
     const sessions = await db.query<{ studentId: string; startedAt: string; status: string }>(
       `select student_id as "studentId", started_at as "startedAt", status::text from public.workout_sessions
         where student_id <> $1 and status in ('completed','in_progress') and (started_at at time zone $2)::date >= $3::date`, [user.id, user.timezone, weekStart]);
-    const expected = await db.query<{ studentId: string; expected: number }>(
-      `select p.student_id as "studentId", coalesce(nullif(sum(cardinality(d.weekdays)), 0), least(count(d.id), 7))::int as expected
-         from public.workout_plans p join public.workout_days d on d.plan_id = p.id where p.is_active and not p.is_template and p.archived_at is null and p.student_id is not null group by p.student_id`);
+    // planos no calendário de todos os atletas, com regularidade, para prever os treinos da semana
+    const planRows = await db.query<{ studentId: string; id: string; name: string; recurrence: Recurrence; days: { id: string; name: string; position: number; weekdays: number[] }[] }>(
+      `select p.student_id as "studentId", p.id, p.name,
+              json_build_object('kind', p.recur_kind, 'every', p.recur_every, 'weekOfMonth', p.recur_week_of_month,
+                                'anchor', to_char(p.recur_anchor, 'YYYY-MM-DD'), 'endsOn', to_char(p.ends_on, 'YYYY-MM-DD')) as recurrence,
+              coalesce((select json_agg(json_build_object('id', d.id, 'name', d.name, 'position', d.position, 'weekdays', d.weekdays) order by d.position)
+                          from public.workout_days d where d.plan_id = p.id), '[]'::json) as days
+         from public.workout_plans p where p.is_active and not p.is_template and p.archived_at is null and p.student_id is not null`);
+    const byStudent = new Map<string, CalPlan[]>();
+    for (const r of planRows) byStudent.set(r.studentId, [...(byStudent.get(r.studentId) ?? []), { id: r.id, name: r.name, recurrence: r.recurrence, days: r.days }]);
+    const expected = [...byStudent].map(([studentId, plans]) => ({ studentId, expected: expectedForWeek(plans, startOfWeek(today)) })).filter((e) => e.expected > 0);
     const weights = await db.query<{ studentId: string; first: number; last: number }>(
       `select student_id as "studentId", (array_agg(weight_kg order by measured_on))[1] as first, (array_agg(weight_kg order by measured_on desc))[1] as last
          from public.body_metrics where measured_on >= $1::date - 30 and student_id <> $2 group by student_id having count(*) >= 2`, [today, user.id]);

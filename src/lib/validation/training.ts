@@ -1,3 +1,4 @@
+import { isValidYmd } from '../dates';
 import { z } from 'zod';
 import { MUSCLES } from '../labels';
 import { checkbox, optionalInt, optionalNumber, optionalText, requiredInt, trimmed, uuid } from './common';
@@ -51,3 +52,10 @@ export const setLogSchema = z.object({
   completed: z.boolean(),
 });
 export type SetLogInput = z.infer<typeof setLogSchema>;
+
+/** Regularidade de um plano: w1..w8 = de N em N semanas; m1..m4 / m5 = numa semana do mês (m5 = última). */
+export const scheduleSchema = z.object({
+  pattern: z.string().regex(/^(w[1-8]|m[1-5])$/, 'Escolhe a regularidade'),
+  anchor: z.string().refine(isValidYmd, 'Data inválida'),
+  endsOn: z.preprocess((v) => (v === '' || v == null ? undefined : v), z.string().refine(isValidYmd, 'Data inválida').optional()),
+}).refine((v) => !v.endsOn || v.endsOn >= v.anchor, { message: 'O fim tem de ser depois do início', path: ['endsOn'] });

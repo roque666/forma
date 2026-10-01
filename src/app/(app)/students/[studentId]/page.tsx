@@ -4,13 +4,13 @@ import { Trash2 } from 'lucide-react';
 import { requireUser } from '@/lib/auth/session';
 import { withUser } from '@/lib/db/pool';
 import { getStudentProfile, listStudentOverview } from '@/lib/data/coach';
-import { listPlans, listTemplates, getActivePlan } from '@/lib/data/plans';
+import { listPlans, listTemplates, listActivePlans, toCalPlans } from '@/lib/data/plans';
 import { getRecentPrEvents, getScheduleContext, listExercisesWithHistory, listSessions } from '@/lib/data/sessions';
 import { getCurrentGoal, getDailyTotals, listWeights } from '@/lib/services/nutrition';
 import { getThresholds, listNotes, withFollowUp } from '@/lib/services/coach';
 import { FOLLOWUP_LABELS_PT, FOLLOWUP_REASON_LABELS_PT } from '@/lib/coach/followup';
-import { expectedSessionsPerWeek, resolveSchedule } from '@/lib/training/schedule';
-import { addDays, isValidYmd, isoToLocalDate, relativeDayLabel, todayInTz } from '@/lib/dates';
+import { expectedForWeek, recurrenceLabel, resolveToday } from '@/lib/training/calendar';
+import { addDays, startOfWeek, isValidYmd, isoToLocalDate, relativeDayLabel, todayInTz } from '@/lib/dates';
 import { deleteNoteAction, endLinkAction } from '@/lib/actions/coach';
 import { uuid } from '@/lib/validation/common';
 import { Avatar } from '@/components/ui/avatar';
@@ -73,18 +73,19 @@ export default async function StudentPage({ params, searchParams }: { params: Pr
 
 async function Summary({ viewerId, studentId, tz, today, follow }: { viewerId: string; studentId: string; tz: string; today: string; follow: ReturnType<typeof withFollowUp>[number] }) {
   const d = await withUser(viewerId, async (db) => {
-    const plan = await getActivePlan(db, studentId);
+    const plans = await listActivePlans(db, studentId);
     const sessions = await listSessions(db, studentId, { limit: 30 });
     return {
-      plan, sessions, prs: await getRecentPrEvents(db, studentId, 5), notes: await listNotes(db, studentId),
+      plans, sessions, prs: await getRecentPrEvents(db, studentId, 5), notes: await listNotes(db, studentId),
       goal: await getCurrentGoal(db, studentId, today), totals: await getDailyTotals(db, studentId, today, today), weights: (await listWeights(db, studentId)).slice(-2),
-      ctx: plan ? await getScheduleContext(db, studentId, today, tz) : null,
+      ctx: plans.length ? await getScheduleContext(db, studentId, today, tz) : null,
     };
   });
   const weekAgo = addDays(today, -6);
   const week = d.sessions.filter((s) => isoToLocalDate(s.startedAt, tz) >= weekAgo).length;
-  const expected = d.plan ? expectedSessionsPerWeek(d.plan.days) : 0;
-  const sched = d.plan && d.ctx ? resolveSchedule({ days: d.plan.days, today, ...d.ctx }) : null;
+  const cal = toCalPlans(d.plans);
+  const expected = expectedForWeek(cal, startOfWeek(today));
+  const todayRes = resolveToday(cal, today, d.ctx ?? {});
   const t = d.totals[0];
   const w = d.weights;
   return (
@@ -98,7 +99,7 @@ async function Summary({ viewerId, studentId, tz, today, follow }: { viewerId: s
       </Card>
       {d.goal && t && <Card><div className="mb-1 flex justify-between text-sm"><span>{GOAL_LABELS[d.goal.goalType]}</span><span className="tabular-nums text-muted">P {fmtNum(t.proteinG, 0)}/{d.goal.proteinG} g</span></div><ProgressBar value={t.kcal} max={d.goal.caloriesTarget} label="Calorias de hoje" /></Card>}
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card><CardTitle href={`/students/${studentId}?tab=workouts`}>Plano atual</CardTitle>{d.plan ? <><p className="font-semibold">{d.plan.name}</p>{sched?.today && <p className="text-sm text-muted">Hoje: {sched.today.name}{sched.doneToday && ' ✓'}</p>}<LinkButton href={`/workouts/${d.plan.id}`} variant="outline" size="sm" className="mt-3">Abrir plano</LinkButton></> : <EmptyState title="Sem plano atual" description="Cria um plano ou atribui um modelo." action={<LinkButton href={`/students/${studentId}?tab=workouts`} variant="outline" size="sm">Ir para treinos</LinkButton>} />}</Card>
+        <Card><CardTitle href={`/students/${studentId}?tab=workouts`}>Planos no calendário</CardTitle>{d.plans.length > 0 ? <><ul className="space-y-1">{d.plans.map((p) => <li key={p.id}><Link href={`/workouts/${p.id}`} className="font-semibold hover:underline">{p.name}</Link> <span className="text-xs text-muted">· {recurrenceLabel(p.recurrence)}</span></li>)}</ul>{todayRes.entries.map((e) => <p key={e.day.id} className="mt-2 text-sm text-muted">Hoje: {e.day.name}{e.done && ' ✓'}</p>)}</> : <EmptyState title="Sem planos no calendário" description="Cria um plano ou atribui um modelo." action={<LinkButton href={`/students/${studentId}?tab=workouts`} variant="outline" size="sm">Ir para treinos</LinkButton>} />}</Card>
         <Card><CardTitle href={`/students/${studentId}?tab=progress`}>Últimos recordes</CardTitle>{d.prs.length === 0 ? <p className="text-sm text-muted">Ainda sem recordes.</p> : <ul className="space-y-1.5 text-sm">{d.prs.map((p) => <li key={p.id} className="flex justify-between gap-2"><span className="truncate">{p.exerciseName}</span><span className="shrink-0 text-muted">{relativeDayLabel(isoToLocalDate(p.createdAt, tz), today)}</span></li>)}</ul>}</Card>
       </div>
       <Card><CardTitle>Notas privadas</CardTitle>

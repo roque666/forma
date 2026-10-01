@@ -15,7 +15,8 @@ import { ActionForm, SelectField, SubmitButton, TextAreaField, TextField } from 
 import { AddDayForm, AddExerciseButton, DayEditForm, ExerciseMetaForm, MoveButtons, SetsEditor } from '@/components/training/plan-editor';
 import { ExercisePhoto } from '@/components/training/exercise-media';
 import { MUSCLE_LABELS, trackingHint } from '@/lib/labels';
-import { weekdayShort } from '@/lib/dates';
+import { todayInTz, weekdayShort } from '@/lib/dates';
+import { recurrenceLabel } from '@/lib/training/calendar';
 
 export const metadata = { title: 'Plano de treino' };
 
@@ -40,11 +41,12 @@ export default async function PlanPage({ params }: { params: Promise<{ planId: s
     <>
       <PageHeader title={plan.name} back={{ href: '/workouts', label: 'Treinos' }}
         subtitle={<span className="inline-flex flex-wrap items-center gap-1.5">
-          {plan.isActive && <Badge tone="accent">Plano atual</Badge>}{plan.isTemplate && <Badge>Modelo</Badge>}{plan.archived && <Badge>Arquivado</Badge>}
+          {plan.isActive && <Badge tone="accent">No calendário · {recurrenceLabel(plan.recurrence)}</Badge>}{plan.isTemplate && <Badge>Modelo</Badge>}{plan.archived && <Badge>Arquivado</Badge>}
           {plan.createdByCoach && !plan.isTemplate && <span>Criado por {plan.createdByName}</span>}
         </span>}
         actions={<>
-          {!plan.isActive && !plan.isTemplate && !plan.archived && <form action={A.activatePlanAction}>{idForm()}<SubmitButton variant="primary" size="md"><CheckCircle2 className="h-4 w-4" /> Tornar atual</SubmitButton></form>}
+          {!plan.isActive && !plan.isTemplate && !plan.archived && <form action={A.activatePlanAction}>{idForm()}<SubmitButton variant="primary" size="md"><CheckCircle2 className="h-4 w-4" /> Pôr no calendário</SubmitButton></form>}
+          {plan.isActive && !plan.isTemplate && <form action={A.deactivatePlanAction}>{idForm()}<SubmitButton variant="outline" size="md">Tirar do calendário</SubmitButton></form>}
           {plan.isTemplate && user.role === 'student' && <form action={A.applyTemplateAction}>{idForm()}<SubmitButton variant="primary" size="md">Usar como meu plano</SubmitButton></form>}
           <form action={A.duplicatePlanAction}>{idForm()}<SubmitButton variant="outline" size="md"><Copy className="h-4 w-4" /> Duplicar</SubmitButton></form>
         </>} />
@@ -105,6 +107,28 @@ export default async function PlanPage({ params }: { params: Promise<{ planId: s
               <SubmitButton size="md" variant="secondary">Guardar</SubmitButton>
             </ActionForm>
           </Card>
+          {!plan.isTemplate && !plan.archived && (
+            <Card id="calendario">
+              <CardTitle>Calendário do plano</CardTitle>
+              <ActionForm action={A.setPlanScheduleAction.bind(null, plan.id)}>
+                <SelectField label="Regularidade" name="pattern" defaultValue={plan.recurrence.kind === 'monthly' ? `m${plan.recurrence.weekOfMonth}` : `w${plan.recurrence.every}`}>
+                  <optgroup label="Por semanas">
+                    <option value="w1">Todas as semanas</option><option value="w2">De 2 em 2 semanas</option>
+                    <option value="w3">De 3 em 3 semanas</option><option value="w4">De 4 em 4 semanas</option>
+                  </optgroup>
+                  <optgroup label="Uma vez por mês">
+                    <option value="m1">Na 1.ª semana do mês</option><option value="m2">Na 2.ª semana do mês</option>
+                    <option value="m3">Na 3.ª semana do mês</option><option value="m4">Na 4.ª semana do mês</option>
+                    <option value="m5">Na última semana do mês</option>
+                  </optgroup>
+                </SelectField>
+                <TextField label="Começa na semana de" name="anchor" type="date" defaultValue={plan.recurrence.anchor ?? todayInTz(user.timezone)} required hint="Nos ciclos de várias semanas, esta é a 1.ª semana em que o plano se faz." />
+                <TextField label="Termina em (opcional)" name="endsOn" type="date" defaultValue={plan.recurrence.endsOn ?? ''} />
+                <SubmitButton size="md" variant="secondary">{plan.isActive ? 'Guardar' : 'Guardar e pôr no calendário'}</SubmitButton>
+                <p className="text-xs text-muted">Podes ter vários planos no calendário ao mesmo tempo. Os dias da semana de cada treino definem-se no próprio plano.</p>
+              </ActionForm>
+            </Card>
+          )}
           {plan.isTemplate && user.realRole === 'coach' && (
             <Card>
               <CardTitle>Atribuir a atleta</CardTitle>

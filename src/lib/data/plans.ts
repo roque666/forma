@@ -1,9 +1,11 @@
 import type { Db } from '../db/pool';
+import type { CalPlan, Recurrence } from '../training/calendar';
 
 export interface PlanSummary {
   id: string; name: string; description: string | null; isActive: boolean; isTemplate: boolean; archived: boolean;
   studentId: string | null; createdBy: string | null; createdByName: string | null; createdByCoach: boolean;
   updatedAt: string; daysCount: number; exercisesCount: number; version: number;
+  recurrence: Recurrence;
 }
 export interface PlanSet {
   id: string; setNumber: number; setType: 'normal' | 'warmup'; targetRepsMin: number | null; targetRepsMax: number | null;
@@ -20,6 +22,8 @@ const SUMMARY = `
   p.id, p.name, p.description, p.is_active as "isActive", p.is_template as "isTemplate", p.archived_at is not null as archived,
   p.student_id as "studentId", p.created_by as "createdBy", cb.full_name as "createdByName", coalesce(cb.role = 'coach', false) as "createdByCoach",
   p.updated_at as "updatedAt", p.version,
+  json_build_object('kind', p.recur_kind, 'every', p.recur_every, 'weekOfMonth', p.recur_week_of_month,
+                    'anchor', to_char(p.recur_anchor, 'YYYY-MM-DD'), 'endsOn', to_char(p.ends_on, 'YYYY-MM-DD')) as recurrence,
   (select count(*) from public.workout_days d where d.plan_id = p.id) as "daysCount",
   (select count(*) from public.plan_exercises pe where pe.plan_id = p.id) as "exercisesCount"
   from public.workout_plans p left join public.profiles cb on cb.id = p.created_by`;
@@ -55,9 +59,18 @@ export async function getPlan(db: Db, planId: string): Promise<PlanDetail | null
   return { ...plan, days: days.map((d) => ({ ...d, exercises: exsByDay.get(d.id) ?? [] })) };
 }
 
-/** Plano atual do atleta com os dias (para "treino de hoje / próximo"). */
+/** Planos no calendário (ativos) do atleta, com os dias. */
+export async function listActivePlans(db: Db, studentId: string): Promise<PlanDetail[]> {
+  const rows = await db.query<{ id: string }>(
+    'select id from public.workout_plans where student_id = $1 and is_active and archived_at is null and not is_template order by created_at', [studentId]);
+  const plans = await Promise.all(rows.map((r) => getPlan(db, r.id)));
+  return plans.filter((p): p is PlanDetail => p !== null);
+}
+
+export const toCalPlans = (plans: PlanDetail[]): CalPlan[] =>
+  plans.map((p) => ({ id: p.id, name: p.name, recurrence: p.recurrence, days: p.days.map((d) => ({ id: d.id, name: d.name, position: d.position, weekdays: d.weekdays })) }));
+
+/** Primeiro plano ativo (compatibilidade; usa listActivePlans para o calendário completo). */
 export async function getActivePlan(db: Db, studentId: string): Promise<PlanDetail | null> {
-  const row = await db.one<{ id: string }>(
-    'select id from public.workout_plans where student_id = $1 and is_active and archived_at is null and not is_template limit 1', [studentId]);
-  return row ? getPlan(db, row.id) : null;
+  return (await listActivePlans(db, studentId))[0] ?? null;
 }

@@ -7,7 +7,7 @@ import { fail, formToObject, ok, parse, run, type ActionResult } from '../action
 import { requireUser } from '../auth/session';
 import { withUser } from '../db/pool';
 import * as t from '../services/training';
-import { daySchema, exerciseSchema, planExerciseMetaSchema, planSchema, planSetsSchema, setLogSchema, type SetLogInput } from '../validation/training';
+import { scheduleSchema, daySchema, exerciseSchema, planExerciseMetaSchema, planSchema, planSetsSchema, setLogSchema, type SetLogInput } from '../validation/training';
 import { uuid } from '../validation/common';
 import { sniffImageMime } from '../media';
 import type { PrEventRow } from '../data/sessions';
@@ -112,6 +112,7 @@ async function planOp(fd: FormData, fn: (db: Parameters<Parameters<typeof withUs
 }
 
 export async function activatePlanAction(fd: FormData) { await planOp(fd, (db, id) => t.activatePlan(db, id)); }
+export async function deactivatePlanAction(fd: FormData) { await planOp(fd, (db, id) => t.deactivatePlan(db, id)); }
 export async function archivePlanAction(fd: FormData) { await planOp(fd, (db, id) => t.archivePlan(db, id, fd.get('archived') === '1'), '/workouts'); }
 export async function deletePlanAction(fd: FormData) { await planOp(fd, (db, id) => t.deletePlan(db, id), '/workouts'); }
 export async function duplicatePlanAction(fd: FormData) {
@@ -122,13 +123,13 @@ export async function duplicatePlanAction(fd: FormData) {
   redirect(`/workouts/${newId}`);
 }
 
-/** "Usar como meu plano": copia um modelo (do próprio coach) para a conta e torna-o o plano atual. */
+/** "Usar como meu plano": copia um modelo (do próprio coach) para a conta e põe-no no calendário. */
 export async function applyTemplateAction(fd: FormData) {
   const user = await requireUser();
   const id = idOf(fd.get('id'));
   const newId = await withUser(user.id, async (db) => {
     const copy = await t.duplicatePlan(db, id, { targetStudentId: user.id, asTemplate: false });
-    await t.activatePlan(db, copy);
+    await t.activatePlan(db, copy); // "usar" = entra no calendário (os outros planos continuam)
     return copy;
   });
   revalidatePath('/workouts');
@@ -336,5 +337,16 @@ export async function coachCorrectSetAction(sessionId: string, _p: FormState, fd
     await withUser(user.id, (db) => db.query('select public.coach_correct_session_set($1, $2, $3, $4, $5)', [p.data.setId, p.data.reason, p.data.weightKg, p.data.reps, p.data.rir]));
     revalidatePath(`/session/${sessionId}`);
     return ok(undefined, 'Correção registada.');
+  });
+}
+
+export async function setPlanScheduleAction(planId: string, _p: FormState, fd: FormData): Promise<FormState> {
+  return run(async () => {
+    const user = await requireUser();
+    const p = parse(scheduleSchema, formToObject(fd));
+    if ('error' in p) return p.error;
+    await withUser(user.id, async (db) => { await t.setPlanSchedule(db, idOf(planId), p.data); await t.activatePlan(db, idOf(planId)); });
+    revalidatePath(`/workouts/${planId}`); revalidatePath('/workouts'); revalidatePath('/calendar'); revalidatePath('/dashboard');
+    return ok(undefined, 'Calendário do plano guardado.');
   });
 }

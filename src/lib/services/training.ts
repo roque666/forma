@@ -82,6 +82,18 @@ export async function deletePlan(db: Db, id: string) {
   if (!(await db.exec('delete from public.workout_plans where id = $1', [id]))) throw NOT_FOUND;
 }
 export async function activatePlan(db: Db, id: string) { await db.query('select public.activate_plan($1)', [id]); }
+/** Tira o plano do calendário (não apaga nada). */
+export async function deactivatePlan(db: Db, id: string) {
+  if (!(await db.exec('update public.workout_plans set is_active = false where id = $1 and not is_template', [id]))) throw NOT_FOUND;
+}
+/** Regularidade do plano no calendário. `pattern`: w1..w8 (de N em N semanas) ou m1..m5 (semana do mês; 5 = última). */
+export async function setPlanSchedule(db: Db, id: string, i: { pattern: string; anchor: string; endsOn?: string }) {
+  const monthly = i.pattern.startsWith('m');
+  const n = Number(i.pattern.slice(1));
+  if (!(await db.exec(
+    `update public.workout_plans set recur_kind = $2, recur_every = $3, recur_week_of_month = $4, recur_anchor = $5, ends_on = $6 where id = $1 and not is_template`,
+    [id, monthly ? 'monthly' : 'weekly', monthly ? 1 : n, monthly ? n : null, i.anchor, i.endsOn ?? null]))) throw NOT_FOUND;
+}
 
 export async function duplicatePlan(db: Db, id: string, o: { targetStudentId?: string; asTemplate?: boolean; name?: string } = {}): Promise<string> {
   const r = await db.one<{ id: string }>('select public.duplicate_plan($1, $2, $3, $4) as id', [id, o.targetStudentId ?? null, !!o.asTemplate, o.name ?? null]);

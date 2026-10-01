@@ -75,9 +75,10 @@ test('modo "O meu treino": todas as secções abrem e dá para treinar e definir
   await expect(page.getByText(`${ex} adicionado.`)).toBeVisible();
   await page.goto('/workouts');
   await page.getByRole('link', { name: new RegExp(`Treino ${stamp}`) }).click();
-  await page.getByRole('button', { name: 'Tornar atual' }).click();
+  await page.getByRole('button', { name: 'Pôr no calendário', exact: true }).click();
   await page.goto('/workouts');
-  await page.getByRole('button', { name: /Iniciar treino|Repetir treino/ }).first().click();
+  // pode haver vários planos no calendário: inicia o treino deste plano
+  await page.locator('div.py-3').filter({ hasText: `Treino ${stamp}` }).getByRole('button', { name: /Iniciar treino|Repetir treino/ }).click();
   await expect(page).toHaveURL(/\/session\//);
   await page.getByLabel(`${ex} série 1 peso`).fill('30');
   await page.getByLabel(`${ex} série 1 repetições`).fill('8');
@@ -162,6 +163,6 @@ test('modelos do coach aparecem em "O meu treino" e podem ser usados como plano'
   await expect(page.getByText('Full body iniciante').first()).toBeVisible();
   await page.locator('div.space-y-2', { hasText: 'Full body iniciante' }).getByRole('button', { name: 'Usar como meu plano' }).click();
   await expect(page).toHaveURL(/\/workouts\/[0-9a-f-]{36}/);
-  await expect(page.getByText('Plano atual')).toBeVisible();
+  await expect(page.getByText(/No calendário · /)).toBeVisible();
   await expect(page.getByRole('heading', { name: /Full body iniciante/ })).toBeVisible();
 });

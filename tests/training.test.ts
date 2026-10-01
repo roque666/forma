@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import { getExerciseProgress, getInProgressSession, getPersonalRecords, getPreviousPerformance, getRecentPrEvents, getSessionDetail, listExercisesWithHistory, listSessions } from '@/lib/data/sessions';
-import { getActivePlan, getPlan, listPlans } from '@/lib/data/plans';
+import { listActivePlans, getActivePlan, getPlan, listPlans } from '@/lib/data/plans';
 import { listExercises } from '@/lib/data/exercises';
 import * as t from '@/lib/services/training';
 import { as, link, makeUser, systemExercise, type TestUser } from './helpers';
@@ -56,7 +56,7 @@ d('treino: exercícios, planos, sessões, PRs', () => {
     expect((await as(student, (db) => getActivePlan(db, student.id)))!.id).toBe(planId);
   });
 
-  it('segundo plano não fica ativo; ativar troca o atual; duplicar faz cópia profunda', async () => {
+  it('segundo plano não fica ativo; ativar acrescenta ao calendário; duplicar faz cópia profunda', async () => {
     const p2 = await as(student, (db) => t.createPlan(db, student, { name: 'Full body' }));
     expect((await as(student, (db) => getPlan(db, p2)))!.isActive).toBe(false);
     const copy = await as(student, (db) => t.duplicatePlan(db, planId));
@@ -64,9 +64,9 @@ d('treino: exercícios, planos, sessões, PRs', () => {
     expect(c!.name).toBe('Push Pull Legs (cópia)');
     expect(c!.days[0].exercises[0].sets).toHaveLength(3);
     await as(student, (db) => t.activatePlan(db, p2));
-    expect((await as(student, (db) => getActivePlan(db, student.id)))!.id).toBe(p2);
-    await as(student, (db) => t.activatePlan(db, planId));
-    expect((await as(student, (db) => listPlans(db, student.id))).filter((p) => p.isActive)).toHaveLength(1);
+    // ativar já não desativa os outros: ficam os dois no calendário
+    expect((await as(student, (db) => listPlans(db, student.id))).filter((p) => p.isActive)).toHaveLength(2);
+    expect((await as(student, (db) => listActivePlans(db, student.id))).map((p) => p.id).sort()).toEqual([planId, p2].sort());
   });
 
   it('reordenar dias e exercícios', async () => {

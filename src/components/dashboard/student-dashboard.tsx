@@ -2,14 +2,15 @@ import Link from 'next/link';
 import { ClipboardList, Flame, Scale, Trophy, TrendingUp, Utensils, Dumbbell } from 'lucide-react';
 import type { SessionUser } from '@/lib/auth/session';
 import { withUser } from '@/lib/db/pool';
-import { getActivePlan } from '@/lib/data/plans';
+import { listActivePlans, toCalPlans } from '@/lib/data/plans';
 import { getInProgressSession, getRecentPrEvents, getScheduleContext, listSessions } from '@/lib/data/sessions';
 import { getCurrentGoal, getDailyTotals, getWeightGoal, listWeights } from '@/lib/services/nutrition';
 import { myPendingInvites } from '@/lib/services/coach';
-import { expectedSessionsPerWeek, resolveSchedule } from '@/lib/training/schedule';
+import { expectedForWeek, resolveToday } from '@/lib/training/calendar';
+import { TodayBody } from '@/components/training/today-card';
 import { dailyProgress } from '@/lib/nutrition/diary';
 import { goalProgress } from '@/lib/body/weight';
-import { addDays, isoToLocalDate, relativeDayLabel, todayInTz, weekdayShort, formatDatePt } from '@/lib/dates';
+import { addDays, isoToLocalDate, relativeDayLabel, startOfWeek, todayInTz, weekdayShort, formatDatePt } from '@/lib/dates';
 import { acceptInviteAction } from '@/lib/actions/coach';
 import { Card, CardTitle, LinkCard, PageHeader } from '@/components/ui/card';
 import { Alert, Badge, ProgressBar, Stat } from '@/components/ui/feedback';
@@ -21,14 +22,15 @@ import { fmtNum, GOAL_LABELS, prValueText, PR_LABELS } from '@/lib/labels';
 export async function StudentDashboard({ user }: { user: SessionUser }) {
   const today = todayInTz(user.timezone);
   const d = await withUser(user.id, async (db) => {
-    const plan = await getActivePlan(db, user.id);
+    const plans = await listActivePlans(db, user.id);
     return {
-      plan, inProgress: await getInProgressSession(db, user.id), ctx: plan ? await getScheduleContext(db, user.id, today, user.timezone) : null,
+      plans, inProgress: await getInProgressSession(db, user.id), ctx: plans.length ? await getScheduleContext(db, user.id, today, user.timezone) : null,
       sessions: await listSessions(db, user.id, { limit: 30 }), prs: await getRecentPrEvents(db, user.id, 3), goal: await getCurrentGoal(db, user.id, today),
       totals: await getDailyTotals(db, user.id, addDays(today, -6), today), weights: await listWeights(db, user.id), wGoal: await getWeightGoal(db, user.id), invites: await myPendingInvites(db),
     };
   });
-  const sched = d.plan && d.ctx ? resolveSchedule({ days: d.plan.days, today, ...d.ctx }) : null;
+  const cal = toCalPlans(d.plans);
+  const todayRes = resolveToday(cal, today, d.ctx ?? {});
   const todayTotals = d.totals.find((t) => t.date === today);
   const target = d.goal ? { kcal: d.goal.caloriesTarget, proteinG: d.goal.proteinG, carbsG: d.goal.carbsG, fatG: d.goal.fatG } : null;
   const prog = target ? dailyProgress({ kcal: todayTotals?.kcal ?? 0, proteinG: todayTotals?.proteinG ?? 0, carbsG: todayTotals?.carbsG ?? 0, fatG: todayTotals?.fatG ?? 0, fiberG: null }, target) : null;
@@ -37,11 +39,10 @@ export async function StudentDashboard({ user }: { user: SessionUser }) {
   const last = d.sessions[0];
   const weekStart = addDays(today, -6);
   const weekSessions = d.sessions.filter((s) => isoToLocalDate(s.startedAt, user.timezone) >= weekStart);
-  const expected = d.plan ? expectedSessionsPerWeek(d.plan.days) : 0;
+  const expected = expectedForWeek(cal, startOfWeek(today));
   const weekVolume = weekSessions.reduce((s, x) => s + x.volumeKg, 0);
   const loggedDays = d.totals.filter((t) => t.kcal > 0);
   const avgKcal = loggedDays.length ? Math.round(loggedDays.reduce((s, t) => s + t.kcal, 0) / loggedDays.length) : null;
-  const todayDay = sched?.today ? d.plan!.days.find((x) => x.id === sched.today!.id) : null;
   const first_name = user.fullName.split(' ')[0];
 
   return (
@@ -58,16 +59,7 @@ export async function StudentDashboard({ user }: { user: SessionUser }) {
         {/* Treino de hoje */}
         <Card>
           <CardTitle href="/workouts">Treino de hoje</CardTitle>
-          {!d.plan ? (
-            <div className="space-y-3"><div className="flex items-center gap-3 text-muted"><ClipboardList className="h-8 w-8" /><p className="text-sm">Ainda não tens plano ativo.</p></div>
-              <div className="flex gap-2"><LinkButton href="/workouts/new" size="md">Criar plano</LinkButton><StartWorkoutButton label="Treino livre" variant="outline" size="md" /></div></div>
-          ) : sched?.today ? (
-            <div><div className="flex items-start justify-between gap-2"><div><p className="text-2xl font-bold">{sched.today.name}</p><p className="text-sm text-muted">{d.plan.name} · {todayDay?.exercises.length ?? 0} exercícios</p></div>{sched.doneToday && <Badge tone="ok">Feito ✓</Badge>}</div>
-              <StartWorkoutButton dayId={sched.today.id} label={sched.doneToday ? 'Repetir treino' : 'Iniciar treino'} variant={sched.doneToday ? 'outline' : 'primary'} className="mt-4" /></div>
-          ) : (
-            <div><p className="text-xl font-bold">Dia de descanso</p><p className="text-sm text-muted">Recupera bem. Se quiseres, podes treinar na mesma:</p><div className="mt-3"><StartWorkoutButton label="Treino livre" variant="outline" size="md" /></div></div>
-          )}
-          {sched?.next && <p className="mt-3 border-t border-line pt-3 text-sm text-muted">Próximo treino: <strong className="text-fg">{sched.next.day.name}</strong>{sched.next.date && ` · ${weekdayShort(new Date(sched.next.date + 'T00:00:00Z').getUTCDay() || 7)} ${formatDatePt(sched.next.date)}`}</p>}
+          <TodayBody result={todayRes} plans={d.plans} />
         </Card>
 
         {/* Calorias */}

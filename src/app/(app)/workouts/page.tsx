@@ -1,11 +1,12 @@
 import Link from 'next/link';
-import { ClipboardList, Dumbbell, Plus, Play, Library } from 'lucide-react';
+import { CalendarDays, Dumbbell, Plus, Play, Library } from 'lucide-react';
 import { requireUser, type SessionUser } from '@/lib/auth/session';
 import { withUser, type Db } from '@/lib/db/pool';
-import { getActivePlan, listPlans, listTemplates, type PlanSummary } from '@/lib/data/plans';
+import { listActivePlans, listPlans, listTemplates, toCalPlans, type PlanSummary } from '@/lib/data/plans';
 import { getInProgressSession, getScheduleContext } from '@/lib/data/sessions';
-import { resolveSchedule } from '@/lib/training/schedule';
-import { todayInTz, weekdayShort, formatDatePt, relativeDayLabel } from '@/lib/dates';
+import { recurrenceLabel, resolveToday } from '@/lib/training/calendar';
+import { TodayBody } from '@/components/training/today-card';
+import { todayInTz } from '@/lib/dates';
 import { Card, CardTitle, LinkCard, PageHeader } from '@/components/ui/card';
 import { Badge, EmptyState } from '@/components/ui/feedback';
 import { LinkButton } from '@/components/ui/button';
@@ -23,7 +24,7 @@ function PlanRow({ p }: { p: PlanSummary }) {
         <p className="text-xs text-muted">{p.daysCount} {p.daysCount === 1 ? 'dia' : 'dias'} · {p.exercisesCount} exercícios{p.createdByCoach && !p.isTemplate ? ` · por ${p.createdByName ?? 'coach'}` : ''}</p>
       </div>
       <div className="flex shrink-0 gap-1.5">
-        {p.isActive && <Badge tone="accent">Atual</Badge>}
+        {p.isActive && <Badge tone="accent">{recurrenceLabel(p.recurrence)}</Badge>}
         {p.isTemplate && <Badge>Modelo</Badge>}
         {p.archived && <Badge>Arquivado</Badge>}
       </div>
@@ -35,14 +36,13 @@ async function StudentView({ user }: { user: SessionUser }) {
   const today = todayInTz(user.timezone);
   const data = await withUser(user.id, async (db: Db) => {
     const [active, plans, inProgress, ctx, templates] = await Promise.all([
-      getActivePlan(db, user.id), listPlans(db, user.id), getInProgressSession(db, user.id), getScheduleContext(db, user.id, today, user.timezone),
+      listActivePlans(db, user.id), listPlans(db, user.id), getInProgressSession(db, user.id), getScheduleContext(db, user.id, today, user.timezone),
       user.realRole === 'coach' ? listTemplates(db, user.id) : Promise.resolve([] as PlanSummary[]), // coach em "O meu treino" vê os seus modelos
     ]);
     return { active, plans, inProgress, ctx, templates };
   });
-  const sched = data.active ? resolveSchedule({ days: data.active.days, today, ...data.ctx }) : null;
+  const todayRes = resolveToday(toCalPlans(data.active), today, data.ctx);
   const others = data.plans.filter((p) => !p.isActive);
-  const dayInfo = (id: string) => data.active!.days.find((d) => d.id === id)!;
   return (
     <>
       <PageHeader title="Treinos" actions={<>
@@ -55,35 +55,10 @@ async function StudentView({ user }: { user: SessionUser }) {
           <span className="inline-flex items-center gap-1 font-bold"><Play className="h-5 w-5" /> Continuar</span>
         </Link>
       )}
-      {data.active && sched?.today ? (
-        <Card className="mb-4">
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted">{sched.doneToday ? 'Concluído hoje' : sched.mode === 'weekday' ? 'Treino de hoje' : 'Treino sugerido'}</p>
-              <h2 className="truncate text-xl font-bold">{sched.today.name}</h2>
-              <p className="text-sm text-muted">{data.active.name} · {dayInfo(sched.today.id).exercises.length} exercícios</p>
-            </div>
-            {sched.doneToday && <Badge tone="ok">Feito ✓</Badge>}
-          </div>
-          <StartWorkoutButton dayId={sched.today.id} label={sched.doneToday ? 'Repetir treino' : 'Iniciar treino'} variant={sched.doneToday ? 'outline' : 'primary'} className="mt-4" />
-          {sched.next && <p className="mt-3 text-sm text-muted">Próximo: <strong className="text-fg">{sched.next.day.name}</strong>{sched.next.date && ` · ${relativeDayLabel(sched.next.date, today) === 'Hoje' ? 'hoje' : weekdayShort(new Date(sched.next.date + 'T00:00:00Z').getUTCDay() || 7)} ${formatDatePt(sched.next.date)}`}</p>}
-        </Card>
-      ) : data.active ? (
-        <Card className="mb-4">
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted">Hoje</p>
-          <h2 className="text-lg font-bold">Dia de descanso</h2>
-          {sched?.next && <p className="text-sm text-muted">Próximo treino: <strong className="text-fg">{sched.next.day.name}</strong>{sched.next.date && ` · ${weekdayShort(new Date(sched.next.date + 'T00:00:00Z').getUTCDay() || 7)} ${formatDatePt(sched.next.date)}`}</p>}
-          <p className="mt-2 text-sm text-muted">Queres treinar mesmo assim? Escolhe um dia do plano ou faz um treino livre.</p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {data.active.days.map((d) => <StartWorkoutButton key={d.id} dayId={d.id} label={d.name} variant="outline" size="md" />)}
-          </div>
-        </Card>
-      ) : (
-        <div className="mb-4"><EmptyState icon={<ClipboardList className="h-8 w-8" />} title="Ainda não tens um plano ativo" description="Cria um plano com os teus dias e exercícios, ou pede ao teu coach. Podes também fazer um treino livre." action={<LinkButton href="/workouts/new">Criar plano</LinkButton>} /></div>
-      )}
+      <Card className="mb-4"><CardTitle action={<LinkButton href="/calendar" variant="ghost" size="sm"><CalendarDays className="h-4 w-4" /> Calendário</LinkButton>}>Hoje</CardTitle><TodayBody result={todayRes} plans={data.active} /></Card>
       <div className="mb-6"><StartWorkoutButton label="Treino livre (sem plano)" variant="secondary" size="md" /></div>
 
-      {data.active && (<section className="mb-6"><CardTitle>Plano atual</CardTitle><PlanRow p={data.active} /></section>)}
+      {data.active.length > 0 && (<section className="mb-6"><CardTitle>No calendário</CardTitle><div className="grid gap-3 sm:grid-cols-2">{data.plans.filter((p) => p.isActive).map((p) => <PlanRow key={p.id} p={p} />)}</div></section>)}
       {others.length > 0 && (
         <section className="mb-6"><CardTitle>Outros planos</CardTitle><div className="grid gap-3 sm:grid-cols-2">{others.map((p) => <PlanRow key={p.id} p={p} />)}</div></section>
       )}
@@ -96,7 +71,7 @@ async function StudentView({ user }: { user: SessionUser }) {
               <form action={applyTemplateAction}><input type="hidden" name="id" value={p.id} /><SubmitButton variant="outline" size="md" className="w-full" pendingLabel="A copiar…">Usar como meu plano</SubmitButton></form>
             </div>))}
           </div>
-          <p className="mt-2 text-xs text-muted">É criada uma cópia tua e passa a ser o teu plano atual; o modelo não muda.</p>
+          <p className="mt-2 text-xs text-muted">É criada uma cópia tua que entra no calendário (o modelo não muda). Ajusta a regularidade na página do plano.</p>
         </section>
       )}
     </>

@@ -49,3 +49,10 @@ Página **Fotos** (atleta e coach em "O meu treino"): regista fotos do corpo (fr
 - Privadas por defeito. A RLS (migração `0010`) só deixa o dono ver/escrever; o coach ativo só vê as fotos marcadas como partilhadas pelo atleta (`/students/<id>/photos`).
 - Guardadas na base de dados (reduzidas no telemóvel para ~1100 px + miniatura de 320 px), servidas por `/api/progress-photo/<id>` com `no-store` (nunca em cache). Apagar uma foto ou a conta elimina-as mesmo.
 - Aplicar na produção: `npm.cmd run db:migrate`.
+
+## Vários planos e calendário
+
+- Podes ter **vários planos ativos** ao mesmo tempo ("no calendário"), por exemplo Push/Pull/Legs e UNC alternados.
+- Em cada plano, o cartão **Calendário do plano** define a regularidade: todas as semanas, de 2/3/4 em 2/3/4 semanas, ou uma vez por mês (1.ª a 4.ª ou última semana do mês), com início e fim opcionais. Os dias da semana de cada treino definem-se nos dias do plano.
+- Página **Calendário**: vista mensal com pontos coloridos por plano, detalhe do dia e botão para iniciar o treino. "Treino de hoje", "Próximo treino" e a adesão do coach respeitam a regularidade.
+- Migração `0011`. Planos já ativos continuam a funcionar (todas as semanas).
