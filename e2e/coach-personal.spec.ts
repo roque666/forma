@@ -132,10 +132,10 @@ test('liberdades do coach no modo atleta: partilhar, editar base, objetivo sem a
   const before = await equip.inputValue();
   await equip.fill('Teste base');
   await page.getByRole('button', { name: /Guardar/ }).first().click();
-  await expect(page.getByText('Exercício atualizado.')).toBeVisible();
+  await expect(page.getByText('Exercício atualizado.').first()).toBeVisible();
   await equip.fill(before);
   await page.getByRole('button', { name: /Guardar/ }).first().click();
-  await expect(page.getByText('Exercício atualizado.')).toBeVisible();
+  await expect(page.getByText('Exercício atualizado.').first()).toBeVisible();
 
   // objetivo sem aviso legal/de segurança
   await page.goto('/nutrition/goals');

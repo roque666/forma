@@ -9,7 +9,7 @@ const securityHeaders = [
 ];
 
 const config: NextConfig = {
-  serverExternalPackages: ['pg'],
+  serverExternalPackages: ['pg', 'nodemailer'],
   poweredByHeader: false,
   experimental: { serverActions: { bodySizeLimit: '2mb' } }, // fotos de exercícios (já reduzidas no telemóvel)
   async headers() {

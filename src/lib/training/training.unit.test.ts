@@ -114,3 +114,14 @@ describe('calendário de planos', () => {
     expect(nextScheduled([unc], '2026-10-05')?.date).toBe('2026-10-08');
   });
 });
+
+import { itemsOnActivities } from './calendar';
+describe('atividades no calendário', () => {
+  const padel = { id: 'p', weekdays: [4], recurrence: { kind: 'weekly' as const, every: 2, weekOfMonth: null, anchor: '2026-10-01', endsOn: null } };
+  it('só aparecem no dia da semana e nas semanas do ciclo', () => {
+    expect(itemsOnActivities([padel], '2026-10-01')).toHaveLength(1);  // quinta, semana 0
+    expect(itemsOnActivities([padel], '2026-10-08')).toHaveLength(0);  // semana 1
+    expect(itemsOnActivities([padel], '2026-10-15')).toHaveLength(1);  // semana 2
+    expect(itemsOnActivities([padel], '2026-10-02')).toHaveLength(0);  // sexta
+  });
+});

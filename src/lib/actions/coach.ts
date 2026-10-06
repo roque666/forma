@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { fail, formToObject, ok, parse, run, type ActionResult } from '../actions';
 import { requireUser } from '../auth/session';
 import { withAdmin, withUser } from '../db/pool';
-import { sendMail } from '../mailer';
+import { mailLayout, sendMail } from '../mailer';
 import * as c from '../services/coach';
 import { checkbox, optionalNumber, requiredInt, trimmed, uuid } from '../validation/common';
 
@@ -23,7 +23,9 @@ export async function inviteStudentAction(_p: FormState, fd: FormData): Promise<
     const p = parse(z.object({ email: z.string().trim().toLowerCase().email('Email inválido').max(200) }), formToObject(fd));
     if ('error' in p) return p.error;
     await withUser(coach.id, (db) => c.inviteStudent(db, p.data.email));
-    await sendMail({ to: p.data.email, subject: `${coach.fullName} convidou-te para a Forma`, text: `${coach.fullName} quer acompanhar o teu treino e nutrição na Forma.\nInicia sessão (ou cria conta com este email) e aceita o convite no teu perfil.` });
+    const url = `${process.env.APP_URL ?? 'http://localhost:3000'}/login`;
+    const m = mailLayout({ title: `${coach.fullName} convidou-te para a Forma`, paragraphs: [`${coach.fullName} quer acompanhar o teu treino e nutrição.`, 'Inicia sessão (ou cria conta com este email) e aceita o convite no teu perfil. Só partilhas dados depois de aceitares.'], button: { label: 'Abrir a Forma', url } });
+    await sendMail({ to: p.data.email, subject: `${coach.fullName} convidou-te para a Forma`, text: m.text, html: m.html });
     revalidatePath('/students');
     return ok(undefined, 'Convite enviado. O atleta tem de o aceitar para partilhar os dados.');
   });

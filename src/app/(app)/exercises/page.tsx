@@ -60,7 +60,7 @@ export default async function ExercisesPage({ searchParams }: { searchParams: Pr
                 <p className="truncate font-medium">{e.name}{e.archived && <span className="ml-2 text-xs text-muted">(arquivado)</span>}</p>
                 <p className="truncate text-xs text-muted">{MUSCLE_LABELS[e.primaryMuscle]}{e.secondaryMuscles.length > 0 && ` · ${e.secondaryMuscles.map((m) => MUSCLE_LABELS[m]).join(', ')}`}{e.equipment && ` · ${e.equipment}`}</p>
               </div>
-              {e.source !== 'system' && <Badge tone="accent">{e.ownerId === user.id ? 'Meu' : 'Coach'}</Badge>}
+              {e.source !== 'system' && <Badge tone="accent">{e.ownerId === user.id ? 'Meu' : e.source === 'physio' ? 'Fisio' : 'Coach'}</Badge>}
             </Link>
           ))}
         </Card>

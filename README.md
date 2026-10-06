@@ -56,3 +56,33 @@ Página **Fotos** (atleta e coach em "O meu treino"): regista fotos do corpo (fr
 - Em cada plano, o cartão **Calendário do plano** define a regularidade: todas as semanas, de 2/3/4 em 2/3/4 semanas, ou uma vez por mês (1.ª a 4.ª ou última semana do mês), com início e fim opcionais. Os dias da semana de cada treino definem-se nos dias do plano.
 - Página **Calendário**: vista mensal com pontos coloridos por plano, detalhe do dia e botão para iniciar o treino. "Treino de hoje", "Próximo treino" e a adesão do coach respeitam a regularidade.
 - Migração `0011`. Planos já ativos continuam a funcionar (todas as semanas).
+
+## Atividades (padel, futebol…)
+
+Página **Atividades** (a partir do Calendário): nome, dias da semana, hora e duração opcionais e a mesma regularidade dos planos. Aparecem no calendário (losango azul), em "Hoje" e marcam-se como feitas com um toque. Migração `0012`.
+
+## Emails (registo, recuperação de palavra-passe, convites)
+
+- Ao criar conta é enviado um email de **boas-vindas com link para confirmar o email**. A confirmação **não é obrigatória** (a conta funciona logo; o perfil mostra "Por confirmar" e permite reenviar, no máximo 1 vez de 5 em 5 minutos). Receber o link de recuperação de palavra-passe também confirma o email. Migração `0013`.
+- Se o envio falhar, o registo e o resto da app **não são afetados** (o erro fica no log).
+- Envio por **SMTP**, configurado com variáveis de ambiente (na Vercel: Settings → Environment Variables):
+
+| Variável | Valor (exemplo Gmail) |
+| --- | --- |
+| `SMTP_HOST` | `smtp.gmail.com` |
+| `SMTP_PORT` | `465` |
+| `SMTP_USER` | o teu endereço Gmail |
+| `SMTP_PASS` | palavra-passe de app (16 letras, sem espaços) |
+| `MAIL_FROM` (opcional) | `Forma <o.teu@gmail.com>` |
+
+Gmail: ativar a verificação em 2 passos → https://myaccount.google.com/apppasswords → criar uma palavra-passe de app. Para outro serviço (Brevo, etc.) só mudam estas variáveis. Sem `SMTP_*`, em desenvolvimento os emails ficam em `.outbox/mail.jsonl`; em produção não são enviados.
+- `APP_URL` tem de ser o endereço público da app (os links dos emails usam-no).
+
+## Fisioterapeuta e reabilitação
+
+- **Conta de fisioterapeuta:** registo normal em `/register`, abrindo "Sou fisioterapeuta" e indicando o código `PHYSIO_SIGNUP_CODE` (variável de ambiente; vazio = desativado).
+- **Pacientes:** o fisio convida pelo email da conta do paciente (Pacientes). O vínculo só fica ativo quando o paciente aceita (em Reabilitação ou no Perfil). O paciente pode terminá-lo a qualquer momento, e o fisio também.
+- **Programas:** um programa é um grupo de exercícios (séries, repetições, tempo a manter, vezes por semana, indicações) para o paciente fazer quando lhe der jeito. Não há treinos, nutrição nem peso para o fisio.
+- **Registos:** o paciente marca "feito" (com dor 0–10 e nota). O fisio vê o progresso da semana, a dor ao longo do tempo e os registos.
+- **Privacidade:** o fisio só vê o nome do paciente e os programas/registos de reabilitação (RLS na base de dados; `physio_patients` é independente do vínculo coach↔atleta). Um coach pode continuar a ter o seu atleta que também é paciente.
+- **Migrações:** 0014 (papel `physio`), 0015 (tabelas e políticas), 0016 (correção de política).

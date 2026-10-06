@@ -44,7 +44,7 @@ export function ExercisePicker({ exercises, onPick, busy }: { exercises: PickerE
                 <span className="block truncate font-semibold">{e.name}</span>
                 <span className="block truncate text-xs text-muted">{MUSCLE_LABELS[e.primaryMuscle]}{e.equipment ? ` · ${e.equipment}` : ''}</span>
               </span>
-              {e.source !== 'system' && <Badge tone="accent">{e.source === 'coach' ? 'Coach' : 'Meu'}</Badge>}
+              {e.source !== 'system' && <Badge tone="accent">{e.source === 'coach' ? 'Coach' : e.source === 'physio' ? 'Fisio' : 'Meu'}</Badge>}
             </button>
           </li>
         ))}

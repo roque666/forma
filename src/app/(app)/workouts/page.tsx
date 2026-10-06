@@ -5,6 +5,7 @@ import { withUser, type Db } from '@/lib/db/pool';
 import { listActivePlans, listPlans, listTemplates, toCalPlans, type PlanSummary } from '@/lib/data/plans';
 import { getInProgressSession, getScheduleContext } from '@/lib/data/sessions';
 import { recurrenceLabel, resolveToday } from '@/lib/training/calendar';
+import { listTodayActivities } from '@/lib/activities/activities';
 import { TodayBody } from '@/components/training/today-card';
 import { todayInTz } from '@/lib/dates';
 import { Card, CardTitle, LinkCard, PageHeader } from '@/components/ui/card';
@@ -39,7 +40,7 @@ async function StudentView({ user }: { user: SessionUser }) {
       listActivePlans(db, user.id), listPlans(db, user.id), getInProgressSession(db, user.id), getScheduleContext(db, user.id, today, user.timezone),
       user.realRole === 'coach' ? listTemplates(db, user.id) : Promise.resolve([] as PlanSummary[]), // coach em "O meu treino" vê os seus modelos
     ]);
-    return { active, plans, inProgress, ctx, templates };
+    return { active, plans, inProgress, ctx, templates, todayActs: await listTodayActivities(db, user.id, today) };
   });
   const todayRes = resolveToday(toCalPlans(data.active), today, data.ctx);
   const others = data.plans.filter((p) => !p.isActive);
@@ -55,7 +56,7 @@ async function StudentView({ user }: { user: SessionUser }) {
           <span className="inline-flex items-center gap-1 font-bold"><Play className="h-5 w-5" /> Continuar</span>
         </Link>
       )}
-      <Card className="mb-4"><CardTitle action={<LinkButton href="/calendar" variant="ghost" size="sm"><CalendarDays className="h-4 w-4" /> Calendário</LinkButton>}>Hoje</CardTitle><TodayBody result={todayRes} plans={data.active} /></Card>
+      <Card className="mb-4"><CardTitle action={<LinkButton href="/calendar" variant="ghost" size="sm"><CalendarDays className="h-4 w-4" /> Calendário</LinkButton>}>Hoje</CardTitle><TodayBody result={todayRes} plans={data.active} activities={data.todayActs} today={today} /></Card>
       <div className="mb-6"><StartWorkoutButton label="Treino livre (sem plano)" variant="secondary" size="md" /></div>
 
       {data.active.length > 0 && (<section className="mb-6"><CardTitle>No calendário</CardTitle><div className="grid gap-3 sm:grid-cols-2">{data.plans.filter((p) => p.isActive).map((p) => <PlanRow key={p.id} p={p} />)}</div></section>)}

@@ -1,7 +1,7 @@
 import type { Db } from '../db/pool';
 import type { PrEventRow } from '../data/sessions';
 
-export interface Actor { id: string; role: 'student' | 'coach'; /** papel real da conta (um coach em "O meu treino" tem role 'student') */ realRole?: 'student' | 'coach' }
+export interface Actor { id: string; role: 'student' | 'coach' | 'physio'; /** papel real da conta (um coach em "O meu treino" tem role 'student') */ realRole?: 'student' | 'coach' | 'physio' }
 
 const NOT_FOUND = Object.assign(new Error('Registo não encontrado.'), { code: 'P0002' });
 
@@ -14,7 +14,7 @@ export async function createExercise(db: Db, actor: Actor, i: ExerciseInput): Pr
   const r = await db.one<{ id: string }>(
     `insert into public.exercises (name, primary_muscle, secondary_muscles, equipment, instructions, tracking_type, source, owner_id, media_url)
      values ($1, $2::public.muscle_group, $3::public.muscle_group[], $4, $5, $6::public.exercise_tracking, $7, $8, $9) returning id`,
-    [i.name, i.primaryMuscle, i.secondaryMuscles, i.equipment ?? null, i.instructions ?? null, i.trackingType, (actor.realRole ?? actor.role) === 'coach' ? 'coach' : 'user', actor.id, i.mediaUrl ?? null]);
+    [i.name, i.primaryMuscle, i.secondaryMuscles, i.equipment ?? null, i.instructions ?? null, i.trackingType, (({ coach: 'coach', physio: 'physio' } as Record<string, string>)[actor.realRole ?? actor.role] ?? 'user'), actor.id, i.mediaUrl ?? null]);
   return r!.id;
 }
 
@@ -42,7 +42,8 @@ export async function removeExerciseImage(db: Db, exerciseId: string): Promise<v
 export async function removeExercise(db: Db, id: string): Promise<'deleted' | 'archived'> {
   const used = await db.one<{ used: boolean }>(
     `select (exists (select 1 from public.plan_exercises where exercise_id = $1)
-          or exists (select 1 from public.session_exercises where exercise_id = $1)) as used`, [id]);
+          or exists (select 1 from public.session_exercises where exercise_id = $1)
+          or exists (select 1 from public.rehab_items where exercise_id = $1)) as used`, [id]);
   if (used?.used) {
     if (!(await db.exec('update public.exercises set archived_at = now() where id = $1', [id]))) throw NOT_FOUND;
     return 'archived';

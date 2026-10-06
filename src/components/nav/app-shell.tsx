@@ -37,7 +37,7 @@ export function AppShell({ user, children }: { user: SessionUser; children: Reac
       <Avatar name={user.fullName || user.email} src={user.avatarUrl} size={36} />
       <div className="min-w-0">
         <p className="truncate text-sm font-semibold leading-tight">{user.fullName || user.email}</p>
-        <p className="text-xs text-muted">{user.role === 'coach' ? 'Coach' : 'Atleta'}</p>
+        <p className="text-xs text-muted">{user.role === 'coach' ? 'Coach' : user.role === 'physio' ? 'Fisioterapeuta' : 'Atleta'}</p>
       </div>
     </div>
   );

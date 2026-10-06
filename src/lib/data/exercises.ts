@@ -3,7 +3,7 @@ import type { Db } from '../db/pool';
 export interface ExerciseRow {
   id: string; name: string; primaryMuscle: string; secondaryMuscles: string[]; equipment: string | null;
   instructions: string | null; images: string[]; trackingType: 'weight_reps' | 'bodyweight_reps' | 'duration'; mediaUrl: string | null;
-  source: 'system' | 'user' | 'coach'; ownerId: string | null; archived: boolean;
+  source: 'system' | 'user' | 'coach' | 'physio'; ownerId: string | null; archived: boolean;
 }
 
 const COLS = `id, name, public.exercise_image_urls(id, image_urls) as images, primary_muscle as "primaryMuscle", secondary_muscles::text[] as "secondaryMuscles", equipment, instructions,

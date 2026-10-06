@@ -59,3 +59,26 @@ export const scheduleSchema = z.object({
   anchor: z.string().refine(isValidYmd, 'Data inválida'),
   endsOn: z.preprocess((v) => (v === '' || v == null ? undefined : v), z.string().refine(isValidYmd, 'Data inválida').optional()),
 }).refine((v) => !v.endsOn || v.endsOn >= v.anchor, { message: 'O fim tem de ser depois do início', path: ['endsOn'] });
+
+/** Atividade (padel, futebol…) no calendário. */
+export const activitySchema = z.object({
+  name: trimmed(1, 60, 'Indica o nome da atividade'),
+  weekdays: weekdaysSchema.refine((v) => v.length > 0, 'Escolhe pelo menos um dia'),
+  startTime: z.preprocess((v) => (v === '' ? undefined : v), z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Hora inválida').optional()),
+  durationMin: optionalInt(5, 600),
+  notes: optionalText(300),
+  pattern: z.string().regex(/^(w[1-8]|m[1-5])$/, 'Escolhe a regularidade'),
+  anchor: z.string().refine(isValidYmd, 'Data inválida'),
+  endsOn: z.preprocess((v) => (v === '' || v == null ? undefined : v), z.string().refine(isValidYmd, 'Data inválida').optional()),
+}).refine((v) => !v.endsOn || v.endsOn >= v.anchor, { message: 'O fim tem de ser depois do início', path: ['endsOn'] });
+
+// ------------------------------------------------------------------ reabilitação (fisioterapeuta)
+export const rehabProgramSchema = z.object({ name: trimmed(2, 80, 'Indica o nome do programa'), notes: optionalText(1000) });
+export const rehabItemSchema = z.object({
+  sets: optionalInt(1, 20),
+  reps: optionalInt(1, 200),
+  holdSeconds: optionalInt(1, 600),
+  weeklyTarget: requiredInt(1, 21, 'Indica quantas vezes por semana'),
+  notes: optionalText(300),
+});
+export const rehabLogSchema = z.object({ itemId: uuid, pain: optionalInt(0, 10), note: optionalText(300) });

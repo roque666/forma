@@ -20,6 +20,7 @@ export default defineConfig({
     command: `npx next start -p ${PORT}`,
     url: `http://localhost:${PORT}/login`,
     reuseExistingServer: true,
+    env: { MAIL_OUTBOX: '1', PHYSIO_SIGNUP_CODE: 'codigo-fisio-teste' },
     timeout: 120_000,
   },
 });

@@ -7,12 +7,12 @@ export const uniq = (p: string) => `${p}${Date.now().toString(36)}${(n++).toStri
 export interface TestUser extends Actor { email: string; name: string }
 
 /** Cria um utilizador diretamente (sem passar pelo fluxo web) — só para testes. */
-export async function makeUser(role: 'student' | 'coach', name = uniq(role)): Promise<TestUser> {
+export async function makeUser(role: 'student' | 'coach' | 'physio', name = uniq(role)): Promise<TestUser> {
   const email = `${name}@test.local`;
   const id = await withAdmin(async (db) => {
     const u = await db.one<{ id: string }>(
       `insert into auth.users (email, raw_user_meta_data) values ($1, jsonb_build_object('full_name', $2::text)) returning id`, [email, name]);
-    if (role === 'coach') await db.exec("update public.profiles set role = 'coach' where id = $1", [u!.id]);
+    if (role !== 'student') await db.exec('update public.profiles set role = $2 where id = $1', [u!.id, role]);
     return u!.id;
   });
   return { id, role, email, name };
@@ -29,4 +29,11 @@ export const admin = withAdmin;
 
 export async function systemExercise(name: string): Promise<string> {
   return withAdmin(async (db) => (await db.one<{ id: string }>("select id from public.exercises where source = 'system' and name = $1", [name]))!.id);
+}
+
+/** Liga um paciente a um fisioterapeuta (aceite pelo próprio paciente). */
+export async function linkPhysio(physio: TestUser, patient: TestUser): Promise<string> {
+  const linkId = await withUser(physio.id, async (db) => (await db.one<{ id: string }>('select public.physio_invite_patient($1) as id', [patient.email]))!.id);
+  await withUser(patient.id, (db) => db.query('select public.accept_physio_link($1)', [linkId]));
+  return linkId;
 }

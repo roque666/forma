@@ -98,3 +98,9 @@ export function recurrenceLabel(r: Recurrence): string {
   if (r.every === 2) return 'De 2 em 2 semanas';
   return `De ${r.every} em ${r.every} semanas`;
 }
+
+/** Atividades (padel, futebol…) previstas numa data. */
+export function itemsOnActivities<T extends { weekdays: number[]; recurrence: Recurrence }>(activities: T[], date: string): T[] {
+  const wd = isoWeekday(date);
+  return activities.filter((a) => a.weekdays.includes(wd) && planOnDate(a.recurrence, date));
+}

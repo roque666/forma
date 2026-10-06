@@ -6,7 +6,8 @@ import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import { z } from 'zod';
 import { fail, formToObject, ok, parse, run, type ActionResult } from '../actions';
 import { withAdmin } from '../db/pool';
-import { sendMail } from '../mailer';
+import { mailLayout, sendMail } from '../mailer';
+import { sendVerificationEmail } from './verification';
 import {
   changePasswordSchema, loginSchema, registerSchema, resetPasswordSchema, resetRequestSchema,
 } from '../validation/auth';
@@ -34,9 +35,16 @@ export async function registerAction(_prev: FormState, fd: FormData): Promise<Fo
   return run(async () => {
     const p = parse(registerSchema, formToObject(fd));
     if ('error' in p) return p.error;
-    const { fullName, email, password, coachCode } = p.data;
+    const { fullName, email, password, coachCode, physioCode } = p.data;
     const ip = clientIpFrom(await headers());
 
+    if (coachCode && physioCode) return fail('Usa só um código profissional.');
+    const wantsPhysio = !!physioCode;
+    if (wantsPhysio) {
+      const expected = process.env.PHYSIO_SIGNUP_CODE;
+      if (!expected) return fail('O registo de fisioterapeutas não está disponível.', { physioCode: 'Indisponível' });
+      if (!constantTimeEquals(physioCode!, expected)) return fail('Código de fisioterapeuta inválido.', { physioCode: 'Código inválido' });
+    }
     const wantsCoach = !!coachCode;
     if (wantsCoach) {
       const expected = process.env.COACH_SIGNUP_CODE;
@@ -64,11 +72,13 @@ export async function registerAction(_prev: FormState, fd: FormData): Promise<Fo
       );
       // O trigger handle_new_user cria o perfil como 'student'. A promoção a coach só acontece aqui, no servidor.
       if (wantsCoach) await db.exec(`update public.profiles set role = 'coach' where id = $1`, [user!.id]);
+      if (wantsPhysio) await db.exec(`update public.profiles set role = 'physio' where id = $1`, [user!.id]);
       return { id: user!.id };
     });
     if ('error' in result) return fail(result.error!, result.error!.startsWith('Já existe') ? { email: 'Email já registado' } : undefined);
 
     await createSession(result.id);
+    await sendVerificationEmail({ id: result.id, email, fullName }, { welcome: true }); // não bloqueia o registo se falhar
     redirect('/dashboard');
   });
 }
@@ -171,11 +181,9 @@ export async function requestPasswordResetAction(_prev: FormState, fd: FormData)
         ),
       );
       const base = process.env.APP_URL ?? 'http://localhost:3000';
-      await sendMail({
-        to: email,
-        subject: 'Redefinir palavra-passe',
-        text: `Recebemos um pedido para redefinir a tua palavra-passe.\n\n${base}/reset-password?token=${token}\n\nO link expira em 1 hora. Se não foste tu, ignora este email.`,
-      });
+      const link = `${base}/reset-password?token=${token}`;
+      const m = mailLayout({ title: 'Redefinir palavra-passe', paragraphs: ['Recebemos um pedido para redefinir a tua palavra-passe.'], button: { label: 'Escolher nova palavra-passe', url: link }, footer: 'O link expira em 1 hora. Se não foste tu, ignora este email.' });
+      await sendMail({ to: email, subject: 'Redefinir palavra-passe', text: m.text, html: m.html });
     }
     return generic;
   });
@@ -195,7 +203,7 @@ export async function resetPasswordAction(_prev: FormState, fd: FormData): Promi
       );
       if (!row) return false;
       await db.exec('update auth.users set encrypted_password = $1 where id = $2', [hash, row.user_id]);
-      await db.exec('update public.profiles set must_change_password = false where id = $1', [row.user_id]);
+      await db.exec('update public.profiles set must_change_password = false, email_verified_at = coalesce(email_verified_at, now()) where id = $1', [row.user_id]); // receber o link prova que o email é dele
       await db.exec('delete from private.sessions where user_id = $1', [row.user_id]);
       return true;
     });
@@ -245,4 +253,20 @@ export async function setViewModeAction(fd: FormData): Promise<void> {
     jar.delete(VIEW_MODE_COOKIE);
   }
   redirect('/dashboard');
+}
+
+/** Reenvia o email de confirmação (no máximo 1 de 5 em 5 minutos). */
+export async function resendVerificationAction(): Promise<void> {
+  const user = await requireUser();
+  const state = await withAdmin(async (db) => {
+    const p = await db.one<{ verified: boolean; recent: boolean }>(
+      `select (email_verified_at is not null) as verified,
+              exists (select 1 from private.email_verifications v where v.user_id = $1 and v.created_at > now() - interval '5 minutes') as recent
+         from public.profiles where id = $1`, [user.id]);
+    return p;
+  });
+  if (!state || state.verified) redirect('/profile');
+  if (state.recent) redirect('/profile?mail=wait');
+  const sent = await sendVerificationEmail({ id: user.id, email: user.email, fullName: user.fullName });
+  redirect(`/profile?mail=${sent ? 'sent' : 'failed'}`);
 }

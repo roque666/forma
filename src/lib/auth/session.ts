@@ -10,7 +10,7 @@ export const SESSION_COOKIE = 'gym_session';
 export const VIEW_MODE_COOKIE = 'view_mode';
 const SESSION_DAYS = 30;
 
-export type Role = 'student' | 'coach';
+export type Role = 'student' | 'coach' | 'physio';
 
 export interface SessionUser {
   id: string;

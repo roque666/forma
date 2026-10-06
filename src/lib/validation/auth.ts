@@ -20,6 +20,7 @@ export const registerSchema = z
     email: emailSchema,
     password: passwordSchema,
     coachCode: z.string().trim().max(100).optional(),
+    physioCode: z.string().trim().max(100).optional(),
   })
   .refine((v) => v.password.toLowerCase() !== v.email, { path: ['password'], message: 'A palavra-passe não pode ser o email' });
 

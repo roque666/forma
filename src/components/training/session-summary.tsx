@@ -16,7 +16,7 @@ interface Props {
   prs: PrEventRow[];
   comments: { id: string; authorName: string; body: string; createdAt: string }[];
   corrections: { id: string; recordId: string; correctedByName: string | null; oldValues: Record<string, any>; newValues: Record<string, any>; reason: string; createdAt: string }[];
-  viewer: { id: string; role: 'student' | 'coach'; timezone: string };
+  viewer: { id: string; role: 'student' | 'coach' | 'physio'; timezone: string };
   studentName?: string;
   backHref: string;
   editHref?: string;

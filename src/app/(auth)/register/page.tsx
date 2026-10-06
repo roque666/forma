@@ -22,6 +22,12 @@ export default async function RegisterPage() {
             <TextField label="Código de coach" name="coachCode" autoComplete="off" hint="Fornecido pelo administrador da plataforma." />
           </div>
         </details>
+        <details className="rounded-xl border border-line px-3.5 py-2.5 text-sm">
+          <summary className="cursor-pointer font-medium text-muted">Sou fisioterapeuta</summary>
+          <div className="pt-3">
+            <TextField label="Código de fisioterapeuta" name="physioCode" autoComplete="off" hint="Fornecido pelo administrador da plataforma." />
+          </div>
+        </details>
         <SubmitButton size="lg" className="w-full" pendingLabel="A criar conta…">Criar conta</SubmitButton>
       </ActionForm>
       <p className="mt-6 text-center text-sm text-muted">

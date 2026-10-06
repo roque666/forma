@@ -6,7 +6,9 @@ import { listActivePlans, toCalPlans } from '@/lib/data/plans';
 import { getInProgressSession, getRecentPrEvents, getScheduleContext, listSessions } from '@/lib/data/sessions';
 import { getCurrentGoal, getDailyTotals, getWeightGoal, listWeights } from '@/lib/services/nutrition';
 import { myPendingInvites } from '@/lib/services/coach';
+import { myPendingPhysioInvites, weekSummary } from '@/lib/physio/physio';
 import { expectedForWeek, resolveToday } from '@/lib/training/calendar';
+import { listTodayActivities } from '@/lib/activities/activities';
 import { TodayBody } from '@/components/training/today-card';
 import { dailyProgress } from '@/lib/nutrition/diary';
 import { goalProgress } from '@/lib/body/weight';
@@ -24,9 +26,10 @@ export async function StudentDashboard({ user }: { user: SessionUser }) {
   const d = await withUser(user.id, async (db) => {
     const plans = await listActivePlans(db, user.id);
     return {
-      plans, inProgress: await getInProgressSession(db, user.id), ctx: plans.length ? await getScheduleContext(db, user.id, today, user.timezone) : null,
+      plans, todayActs: await listTodayActivities(db, user.id, today), inProgress: await getInProgressSession(db, user.id), ctx: plans.length ? await getScheduleContext(db, user.id, today, user.timezone) : null,
       sessions: await listSessions(db, user.id, { limit: 30 }), prs: await getRecentPrEvents(db, user.id, 3), goal: await getCurrentGoal(db, user.id, today),
       totals: await getDailyTotals(db, user.id, addDays(today, -6), today), weights: await listWeights(db, user.id), wGoal: await getWeightGoal(db, user.id), invites: await myPendingInvites(db),
+      rehab: await weekSummary(db, user.id, startOfWeek(today), addDays(startOfWeek(today), 6)), rehabInvites: await myPendingPhysioInvites(db),
     };
   });
   const cal = toCalPlans(d.plans);
@@ -52,6 +55,14 @@ export async function StudentDashboard({ user }: { user: SessionUser }) {
         <Alert tone="info" className="mb-4"><div className="flex flex-wrap items-center justify-between gap-2"><span><strong>{d.invites[0].coachName}</strong> convidou-te para seres acompanhado.</span>
           <form action={acceptInviteAction}><input type="hidden" name="id" value={d.invites[0].linkId} /><Button type="submit" size="sm">Aceitar</Button></form></div></Alert>
       )}
+      {d.rehabInvites.length > 0 && (
+        <Alert tone="info" className="mb-4"><div className="flex flex-wrap items-center justify-between gap-2"><span><strong>{d.rehabInvites[0].physioName}</strong> convidou-te para exercícios de reabilitação.</span>
+          <LinkButton href="/rehab" size="sm">Ver convite</LinkButton></div></Alert>
+      )}
+      {d.rehab && d.rehab.target > 0 && (
+        <LinkCard href="/rehab" className="mb-4"><CardTitle>Reabilitação</CardTitle>
+          <div className="flex items-center gap-3"><div className="flex-1"><ProgressBar value={Math.min(d.rehab.done, d.rehab.target)} max={d.rehab.target} label="Exercícios de reabilitação desta semana" /></div><span className="text-sm font-semibold tabular-nums">{Math.min(d.rehab.done, d.rehab.target)}/{d.rehab.target} esta semana</span></div></LinkCard>
+      )}
       {d.inProgress && (
         <Link href={`/session/${d.inProgress.id}`} className="mb-4 flex items-center justify-between rounded-2xl bg-accent px-4 py-4 font-bold text-accent-fg shadow-card"><span>Treino em curso: {d.inProgress.dayName ?? 'Treino livre'}</span><span>Continuar →</span></Link>
       )}
@@ -59,7 +70,7 @@ export async function StudentDashboard({ user }: { user: SessionUser }) {
         {/* Treino de hoje */}
         <Card>
           <CardTitle href="/workouts">Treino de hoje</CardTitle>
-          <TodayBody result={todayRes} plans={d.plans} />
+          <TodayBody result={todayRes} plans={d.plans} activities={d.todayActs} today={today} />
         </Card>
 
         {/* Calorias */}
