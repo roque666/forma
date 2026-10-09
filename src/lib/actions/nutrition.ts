@@ -7,7 +7,7 @@ import { requireUser } from '../auth/session';
 import { withUser } from '../db/pool';
 import { todayInTz } from '../dates';
 import * as n from '../services/nutrition';
-import { addItemSchema, applySavedSchema, duplicateMealSchema, foodSchema, goalSchema, saveMealSchema, updateItemSchema, weightGoalSchema, weightSchema } from '../validation/nutrition';
+import { addItemSchema, addItemsSchema, applySavedSchema, duplicateMealSchema, foodSchema, goalSchema, saveMealSchema, updateItemSchema, weightGoalSchema, weightSchema } from '../validation/nutrition';
 import { uuid } from '../validation/common';
 
 type FormState = ActionResult<any> | null;
@@ -68,6 +68,29 @@ export async function addMealItemAction(input: unknown): Promise<ActionResult> {
     return ok(undefined, 'Alimento adicionado.');
   });
 }
+/** Adiciona vários alimentos à mesma refeição numa só transação (tudo ou nada). */
+export async function addMealItemsAction(input: unknown): Promise<ActionResult> {
+  return run(async () => {
+    const user = await requireUser();
+    const p = parse(addItemsSchema, input);
+    if ('error' in p) return p.error;
+    await withUser(user.id, async (db) => {
+      for (const it of p.data.items) await n.addMealItem(db, user, { ...it, logDate: p.data.logDate, mealType: p.data.mealType });
+    });
+    revalidatePath('/nutrition');
+    revalidatePath('/dashboard');
+    const c = p.data.items.length;
+    return ok(undefined, c === 1 ? 'Alimento adicionado.' : `${c} alimentos adicionados.`);
+  });
+}
+
+/** Pesquisa ao escrever (a página mantém o cesto, por isso a pesquisa não recarrega). */
+export async function searchFoodsAction(q: string): Promise<n.FoodRow[]> {
+  const user = await requireUser();
+  const term = typeof q === 'string' ? q.slice(0, 80) : '';
+  return withUser(user.id, (db) => n.searchFoods(db, term));
+}
+
 export async function updateItemQuantityAction(input: unknown): Promise<ActionResult> {
   return run(async () => {
     const user = await requireUser();

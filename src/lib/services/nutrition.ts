@@ -227,3 +227,20 @@ export async function setWeightGoal(db: Db, actor: Actor, studentId: string, i: 
   if (!cur) throw bad('Regista primeiro o teu peso atual.');
   await db.exec('insert into public.weight_goals (student_id, start_weight_kg, target_weight_kg, target_date, set_by) values ($1,$2,$3,$4,$5)', [studentId, cur.w, i.targetWeightKg, i.targetDate ?? null, actor.id]);
 }
+
+// ------------------------------------------------------------------ despensa (alimentos disponíveis em casa)
+export const listPantryFoods = (db: Db, studentId: string): Promise<FoodRow[]> =>
+  db.query(`select ${FOOD_COLS} from public.foods f join public.pantry_items p on p.food_id = f.id where p.student_id = $1 order by f.category nulls last, f.name`, [studentId]);
+
+export const setPantry = async (db: Db, studentId: string, foodIds: string[], on: boolean) => {
+  if (foodIds.length === 0) return;
+  if (on) await db.exec(`insert into public.pantry_items (student_id, food_id) select $1, f.id from public.foods f where f.id = any($2::uuid[]) on conflict do nothing`, [studentId, foodIds]);
+  else await db.exec('delete from public.pantry_items where student_id = $1 and food_id = any($2::uuid[])', [studentId, foodIds]);
+};
+
+/** Alimentos de uma categoria (para encher a despensa depressa). */
+export const browseFoods = (db: Db, category: string): Promise<FoodRow[]> =>
+  db.query(`select ${FOOD_COLS} from public.foods f where f.category = $1 order by f.name limit 120`, [category]);
+
+export const listFoodCategories = (db: Db) =>
+  db.query<{ category: string; n: number }>(`select category, count(*)::int as n from public.foods where category is not null group by category order by category`);

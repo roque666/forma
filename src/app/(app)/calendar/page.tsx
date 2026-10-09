@@ -4,7 +4,9 @@ import { ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import { requireUser } from '@/lib/auth/session';
 import { withUser } from '@/lib/db/pool';
 import { listActivePlans, toCalPlans } from '@/lib/data/plans';
-import { listSessions } from '@/lib/data/sessions';
+import { getSessionDetail, listSessionsBetween } from '@/lib/data/sessions';
+import { DaySessions } from '@/components/training/day-sessions';
+import { fmtNum } from '@/lib/labels';
 import { listActivities, listActivityLogs } from '@/lib/activities/activities';
 import { toggleActivityDoneAction } from '@/lib/actions/activities';
 import { itemsOn, itemsOnActivities, recurrenceLabel } from '@/lib/training/calendar';
@@ -35,10 +37,20 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
   const days = Array.from({ length: 42 }, (_, i) => addDays(gridStart, i));
   const rows = days.slice(35).every((d) => d.slice(0, 7) !== month) ? 5 : 6;
 
-  const d = await withUser(user.id, async (db) => ({
-    plans: await listActivePlans(db, user.id), sessions: await listSessions(db, user.id, { limit: 200 }),
-    activities: await listActivities(db, user.id), logs: await listActivityLogs(db, user.id, gridStart, days[41]),
-  }));
+  // treinos feitos no intervalo visível (com 1 dia de margem para o fuso horário)
+  const fromIso = `${addDays(gridStart, -1)}T00:00:00Z`;
+  const toIso = `${addDays(days[41], 2)}T00:00:00Z`;
+  const d = await withUser(user.id, async (db) => {
+    const all = await listSessionsBetween(db, user.id, fromIso, toIso);
+    const daySess = all.filter((x) => isoToLocalDate(x.startedAt, user.timezone) === selected);
+    return {
+      plans: await listActivePlans(db, user.id), sessions: all, daySess,
+      details: (await Promise.all(daySess.map((x) => getSessionDetail(db, x.sessionId)))).filter((x): x is NonNullable<typeof x> => !!x),
+      activities: await listActivities(db, user.id), logs: await listActivityLogs(db, user.id, gridStart, days[41]),
+    };
+  });
+  const monthSess = d.sessions.filter((x) => isoToLocalDate(x.startedAt, user.timezone).slice(0, 7) === month);
+  const monthVol = monthSess.reduce((a, x) => a + x.volumeKg, 0);
   const actDone = new Set(d.logs.map((l) => `${l.activityId}|${l.doneOn}`));
   const cal = toCalPlans(d.plans);
   const colorOf = new Map(cal.map((p, i) => [p.id, COLORS[i % COLORS.length]]));
@@ -51,14 +63,14 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
   return (
     <>
       <PageHeader title="Calendário" subtitle="Os teus planos ao longo do tempo" actions={<><LinkButton href="/activities" variant="outline">Atividades</LinkButton><LinkButton href="/workouts" variant="outline">Planos</LinkButton></>} />
-      {cal.length === 0 && d.activities.length === 0 ? (
-        <EmptyState title="Ainda não tens planos no calendário" description="Põe um plano no calendário com a regularidade que quiseres, ou cria uma atividade (padel, futebol…)." action={<LinkButton href="/workouts">Ver planos</LinkButton>} />
+      {cal.length === 0 && d.activities.length === 0 && d.sessions.length === 0 ? (
+         <EmptyState title="Ainda não tens planos no calendário" description="Põe um plano no calendário com a regularidade que quiseres, ou cria uma atividade (padel, futebol…)." action={<LinkButton href="/workouts">Ver planos</LinkButton>} />
       ) : (
         <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
           <Card>
             <div className="mb-3 flex items-center justify-between">
               <Link href={`/calendar?m=${prevMonth}`} aria-label="Mês anterior" className="rounded-lg p-2 hover:bg-surface2"><ChevronLeft className="h-5 w-5" /></Link>
-              <h2 className="text-base font-bold capitalize">{MONTHS[m - 1]} {y}</h2>
+              <div className="text-center"><h2 className="text-base font-bold capitalize">{MONTHS[m - 1]} {y}</h2><p className="text-xs text-muted" data-testid="month-summary">{monthSess.length} {monthSess.length === 1 ? 'treino' : 'treinos'} · {fmtNum(monthVol, 0)} kg</p></div>
               <Link href={`/calendar?m=${nextMonth}`} aria-label="Mês seguinte" className="rounded-lg p-2 hover:bg-surface2"><ChevronRight className="h-5 w-5" /></Link>
             </div>
             <div className="grid grid-cols-7 gap-1 text-center text-[11px] font-semibold uppercase text-muted">{[1, 2, 3, 4, 5, 6, 7].map((n) => <span key={n}>{weekdayShort(n)}</span>)}</div>
@@ -69,7 +81,7 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
                 const inMonth = date.slice(0, 7) === month;
                 const isSel = date === selected;
                 return (
-                  <Link key={date} href={href({ d: date })} aria-label={`${formatDatePt(date, { day: 'numeric', month: 'long' })}${items.length || acts.length ? `: ${[...items.map((i) => i.day.name), ...acts.map((x) => x.name)].join(', ')}` : ''}`} aria-current={isSel ? 'date' : undefined}
+                  <Link key={date} href={href({ d: date })} aria-label={`${formatDatePt(date, { day: 'numeric', month: 'long' })}${items.length || acts.length ? `: ${[...items.map((i) => i.day.name), ...acts.map((x) => x.name)].join(', ')}` : ''}${doneDates.has(date) ? ' (Treino feito)' : ''}`} aria-current={isSel ? 'date' : undefined}
                     className={cn('flex min-h-[3.4rem] flex-col items-center rounded-xl border px-1 py-1.5 text-sm transition', isSel ? 'border-accent-text bg-accent/15' : 'border-transparent hover:bg-surface2', !inMonth && 'opacity-40', date === today && 'font-bold ring-1 ring-accent-text')}>
                     <span className="tabular-nums">{Number(date.slice(8))}</span>
                     <span className="mt-1 flex flex-wrap justify-center gap-0.5">
@@ -88,7 +100,7 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
           </Card>
           <Card>
             <CardTitle>{selected === today ? 'Hoje' : formatDatePt(selected, { weekday: 'long', day: 'numeric', month: 'long' })}</CardTitle>
-            {selItems.length === 0 && selActs.length === 0 ? <p className="text-sm text-muted">Sem treinos nem atividades neste dia.</p> : (
+            {selItems.length === 0 && selActs.length === 0 ? (d.daySess.length === 0 ? <p className="text-sm text-muted">Sem treinos nem atividades neste dia.</p> : null) : (
               <ul className="space-y-3">
                 {selItems.map((it) => (
                   <li key={it.day.id} className="flex items-center justify-between gap-3">
@@ -110,7 +122,7 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
                 })}
               </ul>
             )}
-            {doneDates.has(selected) && <p className="mt-3 flex items-center gap-1.5 text-sm text-ok"><Check className="h-4 w-4" /> Treino feito neste dia</p>}
+            <DaySessions items={d.daySess} details={d.details} tz={user.timezone} />
           </Card>
         </div>
       )}

@@ -54,6 +54,15 @@ export function listSessions(db: Db, studentId: string, opts: { limit?: number; 
       order by started_at desc limit $2 offset $3`, [studentId, opts.limit ?? 30, opts.offset ?? 0]);
 }
 
+/** Treinos concluídos entre dois instantes (a data local exata filtra-se em quem chama). */
+export function listSessionsBetween(db: Db, studentId: string, fromIso: string, toIso: string): Promise<SessionListItem[]> {
+  return db.query(
+    `select session_id as "sessionId", plan_name as "planName", day_name as "dayName", started_at as "startedAt", ended_at as "endedAt",
+            duration_seconds as "durationSeconds", exercises_count as "exercisesCount", sets_completed as "setsCompleted", volume_kg as "volumeKg"
+       from public.workout_session_summaries where student_id = $1 and status = 'completed' and started_at >= $2::timestamptz and started_at < $3::timestamptz
+      order by started_at`, [studentId, fromIso, toIso]);
+}
+
 /** Últimos valores por exercício e nº de série ("Anterior" no treino ativo). */
 export async function getPreviousPerformance(db: Db, studentId: string, sessionId: string, exerciseIds: string[]) {
   if (exerciseIds.length === 0) return {} as Record<string, Record<number, { weightKg: number | null; reps: number | null; rir: number | null }>>;

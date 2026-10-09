@@ -29,10 +29,10 @@ test('coach alterna para "O meu treino" e usa treino, refeição e peso', async 
   // refeição
   await page.goto('/nutrition/add?type=lunch');
   await page.getByLabel('Pesquisar alimento').fill('frango');
-  await page.getByRole('button', { name: 'Pesquisar' }).click();
   await page.getByRole('button', { name: /Peito de frango grelhado/ }).click();
-  await page.getByLabel('Quantidade').fill('150');
-  await page.getByRole('button', { name: 'Adicionar ao diário' }).click();
+  await page.getByLabel('Unidade de Peito de frango grelhado').selectOption('g');
+  await page.getByLabel('Quantidade de Peito de frango grelhado').fill('150');
+  await page.getByRole('button', { name: /Adicionar 1 ao diário/ }).click();
   await expect(page).toHaveURL(/\/nutrition/);
   await expect(page.getByText('Peito de frango grelhado', { exact: true })).toBeVisible();
 

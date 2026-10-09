@@ -49,6 +49,14 @@ export const addItemSchema = z.object({
 });
 export type AddItemInput = z.infer<typeof addItemSchema>;
 
+/** Vários alimentos de uma vez para a mesma refeição (cesto). */
+export const addItemsSchema = z.object({
+  logDate: ymd,
+  mealType,
+  items: z.array(z.object({ foodId: uuid, quantity: requiredNumber(0.1, 10000, 'Indica a quantidade'), unit: z.enum(['g', 'ml', 'unit']), gramsPerUnit: optionalNumber(1, 5000) }))
+    .min(1, 'Escolhe pelo menos um alimento').max(40, 'No máximo 40 alimentos de cada vez'),
+});
+
 export const updateItemSchema = z.object({ itemId: uuid, quantity: requiredNumber(0.1, 10000, 'Indica a quantidade') });
 
 export const weightSchema = z.object({

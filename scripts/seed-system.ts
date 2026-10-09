@@ -2,6 +2,7 @@
 import pg from 'pg';
 import { EXERCISES } from '../db/seed/exercises';
 import { FOODS } from '../db/seed/foods';
+import { FOODS_EXTRA } from '../db/seed/foods2';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -34,7 +35,7 @@ async function main() {
       withImages += r.rowCount ?? 0;
     }
     let fd = 0;
-    for (const [name, category, kcal, protein, carbs, fat, fiber, density, servings] of FOODS) {
+    for (const [name, category, kcal, protein, carbs, fat, fiber, density, servings] of [...FOODS, ...FOODS_EXTRA]) {
       const r = await client.query(
         `insert into public.foods (name, category, kcal_100g, protein_100g, carbs_100g, fat_100g, fiber_100g, density_g_per_ml, source)
          select $1::text, $2, $3, $4, $5, $6, $7, $8, 'system'
@@ -42,6 +43,7 @@ async function main() {
          returning id`,
         [name, category, kcal, protein, carbs, fat, fiber, density],
       );
+      if (!r.rows[0]) await client.query(`update public.foods set category = $2 where source = 'system' and lower(name) = lower($1) and category is distinct from $2`, [name, category]);
       if (r.rows[0]) {
         fd++;
         for (const [label, grams] of servings) {

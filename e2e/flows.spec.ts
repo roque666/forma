@@ -126,11 +126,11 @@ test('10-11. registar refeição e consultar calorias/macros', async ({ page }) 
   await login(page, studentEmail, studentPass);
   await page.goto('/nutrition/add?type=lunch');
   await page.getByLabel('Pesquisar alimento').fill('frango');
-  await page.getByRole('button', { name: 'Pesquisar' }).click();
   await page.getByRole('button', { name: /Peito de frango grelhado/ }).click();
-  await page.getByLabel('Quantidade').fill('200');
-  await expect(page.getByText('330')).toBeVisible(); // 165 kcal/100 g × 200 g
-  await page.getByRole('button', { name: 'Adicionar ao diário' }).click(); // 10
+  await page.getByLabel('Unidade de Peito de frango grelhado').selectOption('g');
+  await page.getByLabel('Quantidade de Peito de frango grelhado').fill('200');
+  await expect(page.getByTestId('basket-bar').getByText('330')).toBeVisible(); // 165 kcal/100 g × 200 g
+  await page.getByRole('button', { name: /Adicionar 1 ao diário/ }).click(); // 10
   await expect(page).toHaveURL(/\/nutrition/);
   await expect(page.getByText('Peito de frango grelhado', { exact: true })).toBeVisible(); // 11
   await expect(page.getByText(/restantes/)).toBeVisible();

@@ -86,3 +86,24 @@ Gmail: ativar a verificação em 2 passos → https://myaccount.google.com/apppa
 - **Registos:** o paciente marca "feito" (com dor 0–10 e nota). O fisio vê o progresso da semana, a dor ao longo do tempo e os registos.
 - **Privacidade:** o fisio só vê o nome do paciente e os programas/registos de reabilitação (RLS na base de dados; `physio_patients` é independente do vínculo coach↔atleta). Um coach pode continuar a ter o seu atleta que também é paciente.
 - **Migrações:** 0014 (papel `physio`), 0015 (tabelas e políticas), 0016 (correção de política).
+
+## Calendário com histórico e base de alimentos
+
+- **Calendário:** os dias com treino feito têm ✓; ao tocar num dia vês o resumo (volume em kg, exercícios, séries, duração) e, por treino, cada exercício com as séries (peso × repetições), com ligação ao treino completo. O topo do mês mostra quantos treinos e quantos kg.
+- **Alimentos:** a base de sistema passou a ter ~350 alimentos (pratos portugueses, snacks, bebidas, suplementos) com porções comuns. Para a carregar na base de dados: `npm run db:seed:system` (idempotente; não duplica nem mexe nos teus alimentos).
+- **Pesquisa:** aceita várias palavras em qualquer ordem e ignora acentos ("grelhado frango"). Migração 0017.
+
+## Adicionar alimentos (cesto)
+
+Em `/nutrition/add` tocas em cada alimento para o juntar à refeição (entra com uma porção ou 100 g por defeito), acertas a quantidade/unidade no próprio alimento e adicionas tudo de uma vez com "Adicionar N ao diário" (uma só transação: ou entra tudo ou nada). A pesquisa faz-se ao escrever e não perde o cesto; os alimentos usados recentemente aparecem no topo.
+
+## Despensa, geração de refeições e planos de alimentação
+
+Na **Nutrição** (atletas) há quatro separadores: **Diário · Despensa · Planos · Calendário**.
+
+- **Despensa** (`/nutrition/pantry`): lista dos alimentos que tens em casa (sem quantidades). Pesquisa por palavras ou escolhe uma categoria e adiciona com um toque (ou "Adicionar todos").
+- **Gerar refeições** (`/nutrition/plans/generate`): usa a despensa e o objetivo diário (calorias e macros) para propor refeições (pequeno-almoço, almoço, lanche, jantar). Dois modelos: **dia-tipo** (repetível) ou **semana variada** (7 dias). A pré-visualização mostra totais vs. objetivo e avisos; "Outra variação" gera novas combinações. É determinístico por semente, **sem IA** (`src/lib/nutrition/generator.ts`): escolhe combinações por refeição e resolve as quantidades por mínimos quadrados limitados, arredondando a unidades/5 g.
+- **Planos** (`/nutrition/plans`): guarda-se o modelo (os macros são **recalculados no servidor**), edita-se quantidades, escolhem-se os dias da semana de cada dia do plano e põe-se no **calendário** com a mesma regularidade dos planos de treino (semanal, de N em N semanas, mensal).
+- **Calendário** (`/nutrition/calendar`) e cartão **Previsto hoje** no diário: "Adicionar ao diário" copia as refeições do plano (sem duplicar) e "Remover do diário" desfaz. As refeições copiadas ficam independentes do plano.
+- Segurança: tudo com RLS (migração `0018_meal_plans.sql`); o treinador só lê, nunca altera.
+- Atualização: `npm run db:migrate` (aplica a 0018) e `npm run db:seed:system` (normaliza categorias de alimentos).

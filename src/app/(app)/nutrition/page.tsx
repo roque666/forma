@@ -9,6 +9,11 @@ import { LinkCard, PageHeader } from '@/components/ui/card';
 import { Badge, EmptyState, ProgressBar } from '@/components/ui/feedback';
 import { Avatar } from '@/components/ui/avatar';
 import { fmtNum, GOAL_LABELS } from '@/lib/labels';
+import { appliedDays, listPlans, toCalPlans } from '@/lib/services/mealplans';
+import { itemsOn } from '@/lib/training/calendar';
+import { Card, CardTitle } from '@/components/ui/card';
+import { NutritionTabs } from '@/components/nutrition/nutrition-tabs';
+import { ApplyDayButton } from '@/components/nutrition/apply-day-button';
 
 export const metadata = { title: 'Nutrição' };
 
@@ -39,9 +44,22 @@ export default async function NutritionPage({ searchParams }: { searchParams: Pr
   }
   const sp = await searchParams;
   const date = isValidYmd(sp.date) ? sp.date : today;
+  const planned = await withUser(user.id, async (db) => {
+    const plans = await listPlans(db, user.id);
+    const items = itemsOn(toCalPlans(plans), date);
+    const applied = await appliedDays(db, user.id, date, date);
+    return items.map((i) => ({ dayId: i.day.id, label: `${i.plan.name} · ${i.day.name}`, applied: applied.has(`${i.day.id}|${date}`), kcal: plans.flatMap((p) => p.days).find((d) => d.id === i.day.id)?.kcal ?? 0 }));
+  });
   return (
     <>
       <PageHeader title="Nutrição" actions={<LinkButton href="/nutrition/goals" variant="outline">Objetivo e calorias</LinkButton>} />
+      <NutritionTabs active="diary" />
+      {planned.length > 0 && (
+        <Card className="mb-4" data-testid="planned-today">
+          <CardTitle>{date === today ? 'Previsto hoje' : 'Previsto para este dia'}</CardTitle>
+          <ul className="space-y-3">{planned.map((p) => (
+            <li key={p.dayId} className="flex flex-wrap items-center justify-between gap-2"><span className="min-w-0"><span className="block truncate font-semibold">{p.label}</span><span className="text-xs text-muted">{fmtNum(p.kcal, 0)} kcal</span></span><ApplyDayButton dayId={p.dayId} date={date} applied={p.applied} label={p.label} /></li>))}</ul>
+        </Card>)}
       <DiaryView viewerId={user.id} studentId={user.id} date={date} tz={user.timezone} hrefForDate={(d) => `/nutrition?date=${d}`} goalsHref="/nutrition/goals" />
     </>
   );
